@@ -1,0 +1,46 @@
+{
+  "name": "deepnote",
+  "version": "0.1.0",
+  "description": "Search Deepnote workspaces, inspect notebooks, list integrations, and run notebooks from Codex.",
+  "author": {
+    "name": "Deepnote",
+    "url": "https://deepnote.com"
+  },
+  "homepage": "https://github.com/deepnote/codex-plugin",
+  "repository": "https://github.com/deepnote/codex-plugin",
+  "license": "Apache-2.0",
+  "keywords": [
+    "deepnote",
+    "mcp",
+    "codex",
+    "notebooks",
+    "data",
+    "analytics"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Deepnote",
+    "shortDescription": "Work with Deepnote projects and notebooks from Codex.",
+    "longDescription": "Adds Deepnote skills and hosted MCP configuration for Codex. Use it to search workspace resources, list projects and integrations, inspect notebook structure and inputs, start notebook runs with optional input values, and summarize run status and outputs.",
+    "developerName": "Deepnote",
+    "category": "Productivity",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://deepnote.com",
+    "privacyPolicyURL": "https://deepnote.com/privacy",
+    "termsOfServiceURL": "https://deepnote.com/terms",
+    "defaultPrompt": [
+      "Search my Deepnote workspace.",
+      "Inspect this Deepnote notebook.",
+      "Run a Deepnote notebook with inputs."
+    ],
+    "brandColor": "#3793EF",
+    "composerIcon": "./assets/deepnote-icon.svg",
+    "logo": "./assets/deepnote-icon.svg",
+    "screenshots": []
+  }
+}

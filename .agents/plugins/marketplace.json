@@ -1,0 +1,20 @@
+{
+  "name": "deepnote",
+  "interface": {
+    "displayName": "Deepnote"
+  },
+  "plugins": [
+    {
+      "name": "deepnote",
+      "source": {
+        "source": "local",
+        "path": "./plugins/deepnote"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}
