@@ -25,6 +25,8 @@ Do not claim direct access to database schemas, table previews, file metadata, q
 5. Use `create_run` only for full-notebook execution by `notebookId`; the hosted MCP server does not currently expose single-block execution.
 6. Use `get_run` to inspect status, errors, completion time, and snapshot content before reporting results.
 
+Before starting a run, inspect the notebook for cells that print environment variables, secrets, credentials, or entire configuration objects. If found, warn the user and get explicit confirmation before running. Also warn before running notebooks that start servers, send bulk requests, call external services, or mutate data.
+
 ## Notebook Run Inputs
 
 `create_run` accepts an optional `inputs` object. Keys must be notebook input names from `get_notebook`, not labels or block IDs. Values must match the input block type:
@@ -48,3 +50,28 @@ The hosted Deepnote MCP server currently does not expose environment mutation to
 ## Reporting Results
 
 For successful runs, include the executed notebook name or ID, run ID, status, any input overrides that are safe to mention, and the important result from snapshot content when available. For failures, include concise error detail and the next fix to try. Avoid pasting long logs unless the user asks for them.
+
+Keep run reports brief and information-dense unless the user asks for detail. Prefer one compact run table plus the most important result or first actionable error. Do not paste long logs, raw snapshots, or full notebook outputs by default.
+
+Prefer this run summary shape:
+
+| Field | Value |
+| --- | --- |
+| Notebook | `Notebook name` |
+| Run ID | `run-id` |
+| Status | `success`, `failed`, `pending`, or `running` |
+| Started | `YYYY-MM-DD HH:MM UTC` |
+| Completed | `YYYY-MM-DD HH:MM UTC` or `Still running` |
+| Inputs | `safe input summary` or `None` |
+| Result | `short result summary` |
+
+For failed or stuck runs, use a debugging report:
+
+| Check | Finding |
+| --- | --- |
+| Run state | `failed`, `pending`, or `running for N minutes` |
+| First actionable error | `short error text` |
+| Likely cause | `missing input`, `missing file`, `server not listening`, `dependency failure`, or `unknown from MCP` |
+| Safe next step | `inspect notebook`, `rerun with inputs`, `start serving notebook`, or `manual Deepnote action needed` |
+
+If the run snapshot is very large, summarize block counts, failed blocks, final outputs, and the first actionable error instead of pasting the snapshot.

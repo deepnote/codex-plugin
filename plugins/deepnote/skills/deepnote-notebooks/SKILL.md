@@ -14,6 +14,41 @@ description: Use when reading, reviewing, inspecting, or reasoning about hosted 
 5. When asked to review or explain a notebook, ground the answer in specific notebook/block names or IDs when useful.
 6. If the user asks for an edit, say whether the currently exposed Deepnote MCP tools support that edit. The hosted toolset currently does not expose notebook write tools.
 
+## Notebook Inspection Output
+
+Great notebook-inspection output should help the user decide what the notebook does, whether it is safe to run, and what to do next. Prefer this structure:
+
+Keep notebook inspection brief and high signal by default. Lead with the answer, then include only the tables or cautions that materially help the user. Omit exhaustive block listings, raw code, and long outputs unless the user asks for more detail.
+
+1. Start with a one-sentence brief: `Notebook "Name" in project "Project" has 12 blocks, 2 inputs, 1 visible connection, and last ran successfully on YYYY-MM-DD HH:MM UTC.`
+2. Show a compact status table:
+
+| Field | Value |
+| --- | --- |
+| Project | `Project name` |
+| Notebook | `Notebook name` |
+| Notebook ID | `notebook-id` |
+| Scheduled | `Yes` or `No` |
+| Last Run | `status/date/run id` or `No run visible` |
+| Visible Connections | `Integration name (type)` or `None visible via MCP` |
+
+3. If inputs exist, add an inputs table:
+
+| Input | Type | Current Value | Label |
+| --- | --- | --- | --- |
+| `input_name` | `text` | `safe summary or value` | `Human label` |
+
+4. Add a block map when useful, especially for reviews and debugging:
+
+| Order | Type | Purpose | Connection / Output |
+| --- | --- | --- | --- |
+| `1` | `sql` | `SELECT demo.gapminder sample` | `Clickhouse (clickhouse)` |
+
+5. Add `Cautions` only when actionable: cells that print environment variables, hard-coded credentials, mutating external calls, long-running servers, large dataset dumps, missing inputs, failed/pending last runs, or SQL blocks whose integration is not visible.
+6. End with `Useful Next Actions` only when it helps, such as run notebook, inspect last run, map integrations, summarize outputs, or review risky cells.
+
+When MCP does not expose a detail, say `Not visible via MCP` rather than inferring from names. Keep raw code excerpts short; summarize large cells and mention block IDs when useful.
+
 ## Code And Output Handling
 
 - Before suggesting code changes, inspect nearby blocks for imports, shared variables, SQL connections, inputs, and upstream assumptions.
@@ -22,6 +57,8 @@ description: Use when reading, reviewing, inspecting, or reasoning about hosted 
 - If you run a notebook, pass requested input values through `create_run.inputs` using the input `name` fields returned by `get_notebook`, then capture run status with `get_run` and summarize snapshot content or errors when available.
 - Run input values do not change the notebook's saved default input values.
 - For SQL blocks, preserve the existing connection or data source in recommendations unless the user asks to move it.
+- Before running a notebook, flag cells that print `os.environ`, environment variables, credentials, tokens, or broad secret dumps. Do not run those notebooks unless the user explicitly confirms after the risk is named.
+- Treat cells that start servers, send network requests, write files, cancel/modify external records, or call production-like systems as stateful. Call out the side effect before execution.
 
 ## Review And Cleanup
 
