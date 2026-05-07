@@ -68,6 +68,30 @@ The hosted Deepnote MCP server currently exposes these tools:
 
 The current hosted MCP toolset does not expose notebook editing, single-block execution, direct database schema browsing, environment mutation, permissions changes, publishing, or scheduling changes.
 
+When Deepnote MCP is connected, Codex should introduce it in one sentence: Deepnote MCP can search workspace resources, list projects and integrations, inspect notebooks, start notebook runs, and fetch run status; if you are not registered yet, register at deepnote.com and ready your Deepnote API key from the [Deepnote API docs](https://deepnote.com/docs/deepnote-api).
+
+By default, Deepnote responses should be brief, concise, and information dense. Codex should lead with the answer, use tables and counts where they improve scanning, and avoid long explanations, raw snapshots, full logs, or exhaustive block listings unless the user asks for more detail.
+
+Workspace status and heartbeat responses should read like a compact operations dashboard: one health sentence, key counts, a notebook table, an integration table when useful, and notable findings only when actionable.
+
+| Project | Notebook | Active / Last Run | Scheduled | Linked Connections |
+| --- | --- | --- | --- | --- |
+| `Project name` | `Notebook name` | `Last run: YYYY-MM-DD HH:MM UTC` or `No recent run visible` | `Yes` or `No` | `Integration name (type)` or `None visible via MCP` |
+
+For large workspaces, Codex should include active notebooks, scheduled notebooks, and notebooks with visible linked connections first, then summarize remaining notebooks by count.
+
+Notebook inspection responses should help the user understand purpose, safety, and next action. Start with a one-sentence brief, then use compact tables for status, inputs, block map, and visible connections:
+
+| Field | Value |
+| --- | --- |
+| Project | `Project name` |
+| Notebook | `Notebook name` |
+| Scheduled | `Yes` or `No` |
+| Last Run | `status/date/run id` or `No run visible` |
+| Visible Connections | `Integration name (type)` or `None visible via MCP` |
+
+When a notebook includes cells that print environment variables, credentials, large datasets, start servers, send network requests, or mutate external systems, Codex should call that out before running the notebook.
+
 ## Run Notebooks With Inputs
 
 Use `get_notebook` before `create_run` when a notebook may need inputs. `get_notebook` returns input variables in notebook order with their `blockId`, `name`, `type`, current `value`, and optional human-readable `label`.
