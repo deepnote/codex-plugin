@@ -76,7 +76,7 @@ Use this project summary table shape for workspace summaries, notebook inventori
 
 For `Last Run Seen`, use the most recent visible `lastRunAt` across notebooks in the project, or a checked `get_run` completion time when more current. Format dates in UTC as `YYYY-MM-DD HH:MM UTC`. Do not write "None seen" when a run ID or run timestamp is visible.
 
-For `Integrations`, prefer project-level usage from `list_integration_project_usages` when available. If that usage tool is unavailable, inspect notebook blocks and run snapshots for integration IDs/names and say `None found` only when no connection is visible through the available MCP tools.
+For `Integrations`, use integration names and IDs from `list_integrations`, then map visible references from `get_notebook` blocks or `get_run` snapshot content. If the declared MCP tools do not expose project-level usage, do not infer usage from integration names alone; say `None found` only when no connection is visible through the available MCP tools.
 
 Use this notebook-detail table only when the user asks for per-notebook detail, a specific project breakdown, or a specific notebook summary:
 
