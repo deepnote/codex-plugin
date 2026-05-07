@@ -15,7 +15,7 @@ The plugin config registers the hosted server under the MCP server id `deepnote`
 
 When the Deepnote MCP server is connected and the user asks what is available, begin with this one-line sentence before details:
 
-Deepnote MCP can search workspace resources, list projects and integrations, inspect notebooks, start notebook runs, and fetch run status; if you are not registered yet, register at deepnote.com and ready your Deepnote API key from the [Deepnote API docs](https://deepnote.com/docs/deepnote-api).
+Deepnote MCP can search workspace resources, list projects and integrations, inspect notebooks, start notebook runs, and fetch run status; if you are not registered yet, register at deepnote.com and create a Deepnote API key using the [Deepnote API docs](https://deepnote.com/docs/deepnote-api).
 
 ## Available Hosted Tools
 
@@ -58,12 +58,12 @@ When the user asks for a workspace summary, heartbeat, overview, or asks which n
 3. Use `get_notebook` for notebooks that need connection details or recent run detail.
 4. Identify scheduled notebooks from the `isScheduled` field returned by `list_projects` or `get_notebook`.
 5. Identify active notebooks from available recency signals such as `lastRunAt`, a current or recent `lastRunId`, or an explicitly requested run status from `get_run`. If MCP does not expose live kernel/session state, say that active means recent run activity rather than an open editor session.
-6. Identify notebook-linked connections by matching SQL block metadata such as `sql_integration_id` to IDs from `list_integrations`, or by using integration references visible in notebook/run snapshot content. If no connection is visible through MCP, write `None visible via MCP`.
+6. Identify notebook-linked connections by matching SQL block metadata such as `sql_integration_id` to IDs from `list_integrations`, or by using integration references visible in notebook/run snapshot content. If no connection is visible through MCP, write `None found`.
 
 Great workspace-status output should feel like a small operations dashboard:
 
-1. Start with a one-sentence health line, for example: `Deepnote workspace is reachable: 6 projects, 15 notebooks, 1 scheduled notebook, 4 integrations.`
-2. Add a compact `Key Signals` list with counts for projects, notebooks, scheduled notebooks, recently run notebooks, failed or pending runs when checked, and integrations.
+1. Start with a one-sentence health line, for example: `Deepnote workspace is reachable; the current MCP response includes 6 projects, 15 notebooks, 1 scheduled notebook, and 4 integrations.`
+2. Add a compact `Key Signals` list with counts visible in the current MCP response for projects, notebooks, scheduled notebooks, recently run notebooks, failed or pending runs when checked, and integrations.
 3. Use a Markdown project summary table as the main artifact, grouping notebooks by project.
 4. Keep integrations inside the main table as an `Integrations` column for workspace summaries, notebook inventories, and project summaries.
 5. Finish with `Notable Findings` only when there is something actionable, such as a scheduled notebook with no last run, a pending/failed run, a notebook that prints environment variables, or an integration with no visible notebook usage.
@@ -88,7 +88,7 @@ Use a standalone integration table only when the user explicitly asks for an int
 
 | Integration | Type | Visible Notebook Usage |
 | --- | --- | --- |
-| `Integration name` | `type` | `Project / Notebook` or `No usage visible via MCP` |
+| `Integration name` | `type` | `Project / Notebook` or `None found` |
 
 Keep the table concise for large workspaces: include active notebooks, scheduled notebooks, and notebooks with visible linked connections first; then summarize any remaining notebooks by count.
 
