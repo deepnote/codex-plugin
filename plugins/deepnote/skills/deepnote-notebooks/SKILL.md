@@ -22,7 +22,7 @@ Great notebook-inspection output should help the user decide what the notebook d
 Keep notebook inspection brief and high signal by default. Lead with the answer, then include only the tables or cautions that materially help the user. Omit exhaustive block listings, raw code, and long outputs unless the user asks for more detail.
 
 1. Start with a one-sentence brief: `Notebook "Name" in project "Project" has 12 blocks, 2 inputs, 1 visible connection, and last ran successfully on YYYY-MM-DD HH:MM UTC.`
-2. Show a compact status table:
+1. Show a compact status table:
 
 | Field | Value |
 | --- | --- |
@@ -33,20 +33,20 @@ Keep notebook inspection brief and high signal by default. Lead with the answer,
 | Last Run | `status/date/run id` or `No run visible` |
 | Visible Connections | `Integration name (type)` or `None visible via MCP` |
 
-3. If inputs exist, add an inputs table:
+1. If inputs exist, add an inputs table:
 
 | Input | Type | Current Value | Label |
 | --- | --- | --- | --- |
 | `input_name` | `text` | `safe summary or value` | `Human label` |
 
-4. Add a block map when useful, especially for reviews and debugging:
+1. Add a block map when useful, especially for reviews and debugging:
 
 | Order | Type | Purpose | Connection / Output |
 | --- | --- | --- | --- |
 | `1` | `sql` | `SELECT demo.gapminder sample` | `Clickhouse (clickhouse)` |
 
-5. Add `Cautions` only when actionable: cells that print environment variables, hard-coded credentials, mutating external calls, long-running servers, large dataset dumps, missing inputs, failed/pending last runs, SQL blocks whose integration is not visible, or integration usage that was not checked when it matters.
-6. End with `Useful Next Actions` only when it helps, such as run notebook, inspect last run, map integrations, summarize outputs, or review risky cells.
+1. Add `Cautions` only when actionable: cells that print environment variables, hard-coded credentials, mutating external calls, long-running servers, large dataset dumps, missing inputs, failed/pending last runs, SQL blocks whose integration is not visible, or integration usage that was not checked when it matters.
+1. End with `Useful Next Actions` only when it helps, such as run notebook, inspect last run, map integrations, summarize outputs, or review risky cells.
 
 When MCP does not expose a detail, say `Not visible via MCP` rather than inferring from names. Keep raw code excerpts short; summarize large cells and mention block IDs when useful.
 
