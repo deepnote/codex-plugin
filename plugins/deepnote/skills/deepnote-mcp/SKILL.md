@@ -111,7 +111,7 @@ Avoid calling notebooks "currently open" or "currently running" unless a current
 - Avoid downloading or printing large datasets. Sample, summarize, or aggregate data unless the user explicitly asks for an export.
 - Treat notebook execution as potentially stateful and costly. The hosted MCP `create_run` tool starts a notebook run, not a single-cell edit or targeted cell run.
 - Run input overrides apply to one run only. Do not claim they changed notebook defaults.
-- If a tool returns `isError`, surface the user-facing error message concisely. For `create_run` failures such as workspace or parallel run limits, do not poll `get_run` unless a run ID was returned.
+- If a tool returns `isError`, surface the user-facing error message concisely. For `create_run` failures such as workspace or parallel run limits, only call `get_run` if the `create_run` response includes a valid run ID; otherwise do not poll `get_run`.
 - The hosted MCP toolset is mostly read/search/docs/usage mapping plus notebook execution. Do not claim to edit notebooks, projects, integrations, permissions, schedules, or publishing through the Deepnote MCP server unless such tools are exposed in the current session.
 
 ## Response Style
