@@ -11,8 +11,10 @@ Use the Deepnote MCP server for the execution and context it currently exposes:
 
 - `get_notebook` for notebook blocks, input variables, last-run metadata, and integration references visible in blocks.
 - `list_integrations` for workspace integration names and types.
+- `list_integration_project_usages`, `list_integration_notebook_usages`, and `list_integration_block_usages` for direct integration usage mapping.
 - `create_run` to start full-notebook execution, optionally with input values.
 - `get_run` for run status, errors, completion time, and snapshot content when available.
+- `get_me` for the authenticated workspace, API key type, and caller access level when execution permissions or workspace identity matter.
 
 Do not claim direct access to database schemas, table previews, file metadata, query previews, or environment configuration unless a current MCP tool explicitly exposes that data.
 
@@ -23,7 +25,8 @@ Do not claim direct access to database schemas, table previews, file metadata, q
 3. If the notebook has inputs and the user supplied values, map values to the exact input `name` fields returned by `get_notebook`.
 4. Check whether execution may mutate data, call external services, trigger schedules, or consume significant compute.
 5. Use `create_run` only for full-notebook execution by `notebookId`; the hosted MCP server does not currently expose single-block execution.
-6. Use `get_run` to inspect status, errors, completion time, and snapshot content before reporting results.
+6. If `create_run` returns an MCP error, report that error and stop; do not call `get_run` unless a run ID was returned.
+7. Use `get_run` to inspect status, errors, completion time, and snapshot content before reporting results.
 
 Before starting a run, inspect the notebook for cells that print environment variables, secrets, credentials, or entire configuration objects. If found, warn the user and get explicit confirmation before running. Also warn before running notebooks that start servers, send bulk requests, call external services, or mutate data.
 
@@ -49,7 +52,7 @@ The hosted Deepnote MCP server currently does not expose environment mutation to
 
 ## Reporting Results
 
-For successful runs, include the executed notebook name or ID, run ID, status, any input overrides that are safe to mention, and the important result from snapshot content when available. For failures, include concise error detail and the next fix to try. Avoid pasting long logs unless the user asks for them.
+For successful runs, include the executed notebook name or ID, run ID, status, any input overrides that are safe to mention, and the important result from snapshot content when available. For failures, include concise error detail and the next fix to try. If a run fails before it starts, such as a workspace or parallel run limit, report the user-facing API error directly. Avoid pasting long logs unless the user asks for them.
 
 Keep run reports brief and information-dense unless the user asks for detail. Prefer one compact run table plus the most important result or first actionable error. Do not paste long logs, raw snapshots, or full notebook outputs by default.
 
