@@ -56,6 +56,7 @@ Route common user requests before choosing tools:
 | A specific notebook, notebook contents, inputs, SQL, blocks, outputs, recent run state | Notebook Inspection Workflow | `search`, `get_notebook`, optional `get_run`, `list_integrations` | Notebook brief, run status, inputs table, block map, connection map, cautions, next actions |
 | Notebook execution, rerun, run with inputs, run status | Execution Workflow | `get_notebook`, `create_run`, `get_run` | Run card with ID, status, duration, inputs, result summary, failure reason |
 | Integrations, data connections, "what uses Snowflake/BigQuery/Postgres/etc." | Integration Mapping Workflow | `list_integrations`, `list_integration_project_usages`, `list_integration_notebook_usages`, `list_integration_block_usages` | Integration table and direct project/notebook/block usage references |
+| Project, notebook, or workspace links/URLs | `deepnote-links` skill | `get_me`, `list_projects` or `search`, optional `get_notebook` | Markdown links using workspace-aware Deepnote URL shapes |
 | Deepnote product docs or API how-to questions | Docs Workflow | `list_docs`, `get_doc` | Concise answer grounded in fetched docs, with relevant doc title or slug |
 | "Why failed?", "stuck?", "debug this run" | Run Debugging Workflow | `get_run`, `get_notebook` | Failure summary, first actionable error, likely fix, safe next step |
 
@@ -116,6 +117,6 @@ Avoid calling notebooks "currently open" or "currently running" unless a current
 
 ## Response Style
 
-Keep responses grounded in Deepnote state: project name, notebook name, cell or block labels, execution status, and relevant links when the MCP server provides them. If a task cannot be completed through the Deepnote MCP server, explain the missing capability and offer the nearest safe next step.
+Keep responses grounded in Deepnote state: project name, notebook name, cell or block labels, execution status, and relevant links when the MCP server provides them or when they can be safely constructed from workspace, project, and notebook identifiers. If a task cannot be completed through the Deepnote MCP server, explain the missing capability and offer the nearest safe next step.
 
 Default to brief, concise, information-dense answers. Use tables, counts, status labels, and only the highest-signal findings. Do not include long explanations, raw snapshots, full block contents, or exhaustive notebook lists unless the user asks for more detail.

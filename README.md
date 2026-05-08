@@ -1,13 +1,13 @@
 # Deepnote Codex Plugin
 
-Use Deepnote from Codex to identify the current workspace, search resources, inspect notebooks, list projects and integrations, map integration usage, read Deepnote docs, start notebook runs, and summarize run status and outputs.
+Use Deepnote from Codex to identify the current workspace, search resources, inspect notebooks, generate project and notebook links, list projects and integrations, map integration usage, read Deepnote docs, start notebook runs, and summarize run status and outputs.
 
 ## What Is Included
 
 - Codex marketplace manifest in `.agents/plugins/marketplace.json`
 - Deepnote plugin manifest in `plugins/deepnote/.codex-plugin/plugin.json`
 - Hosted Deepnote MCP configuration in `plugins/deepnote/.mcp.json`
-- Deepnote skills for workspace search, docs lookup, integration mapping, notebook inspection, and notebook execution workflows
+- Deepnote skills for workspace search, link generation, docs lookup, integration mapping, notebook inspection, and notebook execution workflows
 - Deepnote branding assets
 
 ## Requirements
@@ -117,6 +117,10 @@ Use `get_me` when a response needs to name the authenticated workspace, debug ac
 
 Pass `pageToken` from `pagination.nextPageToken` to fetch the next page. Treat page tokens as opaque and tied to the original filters.
 
+## Project And Notebook Links
+
+The [`deepnote-links`](plugins/deepnote/skills/deepnote-links/SKILL.md) skill covers how Codex should build workspace-aware Deepnote project and notebook links from MCP data.
+
 ## Integration Usage Mapping
 
 Use `list_integrations` first to discover integration IDs. Then use the usage tools for the needed granularity:
@@ -223,6 +227,7 @@ codex plugin marketplace upgrade deepnote
 
 - `Search my Deepnote workspace for customer retention notebooks.`
 - `Which Deepnote workspace am I connected to?`
+- `Give me links to my Deepnote projects.`
 - `Inspect this Deepnote notebook and summarize its inputs.`
 - `Run this Deepnote notebook with customer_name set to Acme.`
 - `List Deepnote integrations matching Snowflake.`
