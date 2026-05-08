@@ -1,13 +1,13 @@
 # Deepnote Codex Plugin
 
-Use Deepnote from Codex to search workspaces, inspect notebooks, list integrations, start notebook runs, and summarize run status and outputs.
+Use Deepnote from Codex to identify the current workspace, search resources, inspect notebooks, list projects and integrations, map integration usage, read Deepnote docs, start notebook runs, and summarize run status and outputs.
 
 ## What Is Included
 
 - Codex marketplace manifest in `.agents/plugins/marketplace.json`
 - Deepnote plugin manifest in `plugins/deepnote/.codex-plugin/plugin.json`
 - Hosted Deepnote MCP configuration in `plugins/deepnote/.mcp.json`
-- Deepnote skills for workspace search, notebook inspection, and notebook execution workflows
+- Deepnote skills for workspace search, docs lookup, integration mapping, notebook inspection, and notebook execution workflows
 - Deepnote branding assets
 
 ## Requirements
@@ -60,15 +60,21 @@ This marketplace marks authentication as `ON_INSTALL`, so Codex may show Deepnot
 The hosted Deepnote MCP server currently exposes these tools:
 
 - `search`: search workspace resources across projects, notebooks, blocks, and integrations
-- `list_projects`: list workspace projects, optionally filtered by name
+- `get_me`: get the calling API key, creator user, workspace, and access level
+- `list_projects`: list workspace projects, optionally filtered by name, with cursor pagination
 - `list_integrations`: list workspace integrations, optionally filtered by name or type
+- `list_integration_project_usages`: list projects connected to an integration
+- `list_integration_notebook_usages`: list notebooks containing SQL blocks that use an integration
+- `list_integration_block_usages`: list SQL blocks that use an integration
 - `get_notebook`: inspect notebook details, blocks, input variables, and last-run metadata
 - `create_run`: start a full notebook run, optionally with input values
 - `get_run`: inspect run status, errors, completion time, and snapshot content when available
+- `list_docs`: list Deepnote docs sections and article slugs
+- `get_doc`: fetch a Deepnote documentation article by slug
 
 The current hosted MCP toolset does not expose notebook editing, single-block execution, direct database schema browsing, environment mutation, permissions changes, publishing, or scheduling changes.
 
-When Deepnote MCP is connected, Codex should introduce it in one sentence: Deepnote MCP can search workspace resources, list projects and integrations, inspect notebooks, start notebook runs, and fetch run status; if you are not registered yet, register at deepnote.com and ready your Deepnote API key from the [Deepnote API docs](https://deepnote.com/docs/deepnote-api).
+When Deepnote MCP is connected, Codex should introduce it in one sentence: Deepnote MCP can identify the current workspace, search resources, list projects and integrations, inspect notebooks, map integration usage, read Deepnote docs, start notebook runs, and fetch run status; if you are not registered yet, register at deepnote.com and ready your Deepnote API key from the [Deepnote API docs](https://deepnote.com/docs/deepnote-api).
 
 By default, Deepnote responses should be brief, concise, and information dense. Codex should lead with the answer, use tables and counts where they improve scanning, and avoid long explanations, raw snapshots, full logs, or exhaustive block listings unless the user asks for more detail.
 
@@ -78,7 +84,7 @@ Workspace status and heartbeat responses should read like a compact operations d
 | --- | --- | --- | --- | --- |
 | `Project name` | `Notebook name` | `Last run: YYYY-MM-DD HH:MM UTC` or `No recent run visible` | `Yes` or `No` | `Integration name (type)` or `None visible via MCP` |
 
-For large workspaces, Codex should include active notebooks, scheduled notebooks, and notebooks with visible linked connections first, then summarize remaining notebooks by count.
+For large workspaces, Codex should request `list_projects` with `pageSize: 100` and follow `pagination.nextPageToken` while `pagination.hasMore` is true when a complete inventory is needed. If the user only needs a sample or filtered answer, Codex can stop once it has enough evidence. Codex should include active notebooks, scheduled notebooks, and notebooks with visible linked connections first, then summarize remaining notebooks by count.
 
 Notebook inspection responses should help the user understand purpose, safety, and next action. Start with a one-sentence brief, then use compact tables for status, inputs, block map, and visible connections:
 
@@ -88,9 +94,38 @@ Notebook inspection responses should help the user understand purpose, safety, a
 | Notebook | `Notebook name` |
 | Scheduled | `Yes` or `No` |
 | Last Run | `status/date/run id` or `No run visible` |
-| Visible Connections | `Integration name (type)` or `None visible via MCP` |
+| Visible Connections | `Integration name (type)`, `Usage not checked`, or `None visible via MCP` |
 
 When a notebook includes cells that print environment variables, credentials, large datasets, start servers, send network requests, or mutate external systems, Codex should call that out before running the notebook.
+
+## Workspace Identity And Project Pagination
+
+Use `get_me` when a response needs to name the authenticated workspace, debug access issues, or report the caller's access level. The response includes API key metadata, user metadata, workspace `{ id, name, slug }`, and `accessLevel`.
+
+`list_projects` returns a paginated response:
+
+```json
+{
+  "projects": [],
+  "pagination": {
+    "pageSize": 100,
+    "nextPageToken": "opaque-token-or-null",
+    "hasMore": true
+  }
+}
+```
+
+Pass `pageToken` from `pagination.nextPageToken` to fetch the next page. Treat page tokens as opaque and tied to the original filters.
+
+## Integration Usage Mapping
+
+Use `list_integrations` first to discover integration IDs. Then use the usage tools for the needed granularity:
+
+- `list_integration_project_usages` for connected projects
+- `list_integration_notebook_usages` for notebooks containing SQL blocks that use the integration
+- `list_integration_block_usages` for the exact SQL blocks and block content
+
+Each usage tool can be narrowed with `projectId`. If usage is not checked, say `Usage not checked`; if the tool returns no usages, say `No usage returned`.
 
 ## Run Notebooks With Inputs
 
@@ -118,6 +153,8 @@ Input values must match the notebook input block type:
 - Slider values are numeric strings.
 
 If an input name is not defined for the notebook, or a value does not match the input block type, Deepnote returns a validation error and the run is not started. Input values apply to that run only; they do not change the notebook's saved defaults.
+
+If `create_run` fails before returning a run ID, Codex should surface the MCP/API error directly and should not poll `get_run`. This includes user-facing errors such as workspace or parallel run limits.
 
 ## Install From GitHub
 
@@ -185,17 +222,21 @@ codex plugin marketplace upgrade deepnote
 ## Good First Prompts
 
 - `Search my Deepnote workspace for customer retention notebooks.`
+- `Which Deepnote workspace am I connected to?`
 - `Inspect this Deepnote notebook and summarize its inputs.`
 - `Run this Deepnote notebook with customer_name set to Acme.`
 - `List Deepnote integrations matching Snowflake.`
+- `Show me where this Deepnote integration is used.`
+- `Look up the Deepnote docs for scheduled notebooks.`
 
 ## Troubleshooting
 
 - If authentication fails, confirm `DEEPNOTE_MCP_TOKEN` is set in the environment Codex actually starts from.
 - If a resource is missing, check that the API key creator has access to the workspace, project, notebook, or integration.
+- If project listings look incomplete, check whether `pagination.hasMore` is true and continue with `pagination.nextPageToken`.
 - If a notebook run with inputs fails before starting, check that each input key matches a `get_notebook` input `name` and that each value matches the input type.
 - If a run fails, ask Codex to inspect the run with `get_run` and summarize the error.
-- If Codex suggests an edit or environment change, remember that the current hosted MCP server is read/search plus full-notebook execution only.
+- If Codex suggests an edit or environment change, remember that the current hosted MCP server is read/search/docs/usage mapping plus full-notebook execution only.
 
 ## License
 

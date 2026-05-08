@@ -11,8 +11,9 @@ description: Use when reading, reviewing, inspecting, or reasoning about hosted 
 2. Read the notebook with `get_notebook` before answering questions about structure, inputs, blocks, or last-run state.
 3. Preserve distinctions between block types, notebook inputs, code, SQL, markdown, and metadata in your reasoning.
 4. When reporting inputs, include the input `name`, `type`, current `value`, and `label` when useful.
-5. When asked to review or explain a notebook, ground the answer in specific notebook/block names or IDs when useful.
-6. If the user asks for an edit, say whether the currently exposed Deepnote MCP tools support that edit. The hosted toolset currently does not expose notebook write tools.
+5. When SQL connection usage matters, use `list_integrations` and the integration usage tools to confirm project, notebook, or block references instead of inferring solely from names.
+6. When asked to review or explain a notebook, ground the answer in specific notebook/block names or IDs when useful.
+7. If the user asks for an edit, say whether the currently exposed Deepnote MCP tools support that edit. The hosted toolset currently does not expose notebook write tools.
 
 ## Notebook Inspection Output
 
@@ -44,7 +45,7 @@ Keep notebook inspection brief and high signal by default. Lead with the answer,
 | --- | --- | --- | --- |
 | `1` | `sql` | `SELECT demo.gapminder sample` | `Clickhouse (clickhouse)` |
 
-5. Add `Cautions` only when actionable: cells that print environment variables, hard-coded credentials, mutating external calls, long-running servers, large dataset dumps, missing inputs, failed/pending last runs, or SQL blocks whose integration is not visible.
+5. Add `Cautions` only when actionable: cells that print environment variables, hard-coded credentials, mutating external calls, long-running servers, large dataset dumps, missing inputs, failed/pending last runs, SQL blocks whose integration is not visible, or integration usage that was not checked when it matters.
 6. End with `Useful Next Actions` only when it helps, such as run notebook, inspect last run, map integrations, summarize outputs, or review risky cells.
 
 When MCP does not expose a detail, say `Not visible via MCP` rather than inferring from names. Keep raw code excerpts short; summarize large cells and mention block IDs when useful.
