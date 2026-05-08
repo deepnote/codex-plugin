@@ -56,7 +56,7 @@ Route common user requests before choosing tools:
 | A specific notebook, notebook contents, inputs, SQL, blocks, outputs, recent run state | Notebook Inspection Workflow | `search`, `get_notebook`, optional `get_run`, `list_integrations` | Notebook brief, run status, inputs table, block map, connection map, cautions, next actions |
 | Notebook execution, rerun, run with inputs, run status | Execution Workflow | `get_notebook`, `create_run`, `get_run` | Run card with ID, status, duration, inputs, result summary, failure reason |
 | Integrations, data connections, "what uses Snowflake/BigQuery/Postgres/etc." | Integration Mapping Workflow | `list_integrations`, `list_integration_project_usages`, `list_integration_notebook_usages`, `list_integration_block_usages` | Integration table and direct project/notebook/block usage references |
-| Project, notebook, or workspace links/URLs | `deepnote-links` skill, plus `deepnote-utm-links` for project and notebook URLs | `get_me`, `list_projects` or `search`, optional `get_notebook` | Markdown links using workspace-aware Deepnote URL shapes with Codex/OpenAI MCP UTM attribution |
+| Project, notebook, or workspace links/URLs | `deepnote-links` skill | `get_me`, `list_projects` or `search`, optional `get_notebook` | Markdown links using workspace-aware Deepnote URL shapes with Codex/OpenAI MCP UTM attribution |
 | Deepnote product docs or API how-to questions | Docs Workflow | `list_docs`, `get_doc` | Concise answer grounded in fetched docs, with relevant doc title or slug |
 | "Why failed?", "stuck?", "debug this run" | Run Debugging Workflow | `get_run`, `get_notebook` | Failure summary, first actionable error, likely fix, safe next step |
 
@@ -71,7 +71,7 @@ When the user asks for a workspace summary, heartbeat, overview, or asks which n
 5. Identify scheduled notebooks from the `isScheduled` field returned by `list_projects` or `get_notebook`.
 6. Identify active notebooks from available recency signals such as `lastRunAt`, a current or recent `lastRunId`, or an explicitly requested run status from `get_run`. If MCP does not expose live kernel/session state, say that active means recent run activity rather than an open editor session.
 7. Identify integration usage with `list_integration_project_usages`, `list_integration_notebook_usages`, or `list_integration_block_usages` when direct usage mapping is needed. If usage is not checked, write `Usage not checked`; if a checked usage tool returns no usages, write `None found`.
-8. Build safe project and notebook links with `deepnote-links`. For project and notebook URLs, apply `deepnote-utm-links`; use `utm_term=workspace_summary` when the link is created by this workflow rather than a single MCP tool result.
+8. Build safe project and notebook links with `deepnote-links`, including UTM parameters on project and notebook URLs; use `utm_term=workspace_summary` when the link is created by this workflow rather than a single MCP tool result.
 
 Great workspace-status output should feel like a small operations dashboard:
 

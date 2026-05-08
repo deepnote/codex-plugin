@@ -5,7 +5,7 @@ description: Use when a task asks for Deepnote URLs, links, project links, noteb
 
 # Deepnote Links
 
-Use this skill to build user-facing Deepnote web links from MCP data. Prefer links grounded in `get_me`, `list_projects`, `search`, and `get_notebook` responses instead of guessing from names alone. For every project and notebook link built from Deepnote MCP data, apply `deepnote-utm-links`.
+Use this skill to build user-facing Deepnote web links from MCP data. Prefer links grounded in `get_me`, `list_projects`, `search`, and `get_notebook` responses instead of guessing from names alone. Every project and notebook link built from Deepnote MCP data must include the UTM parameters below.
 
 ## Inputs To Resolve
 
@@ -58,8 +58,29 @@ folder/notebook 10% + a1b2c3d4
 
 - File paths, when exposed and requested, append after the project segment as `/{encodeURIComponent(filePath)}`.
 - Cell or block anchors append as `#anchor`.
-- For every project and notebook link built from Deepnote MCP data, add Codex/OpenAI MCP UTM parameters with `deepnote-utm-links`.
 - Only generate published app links such as `/app/{authorSlug}/{projectSegment}` or `/streamlit-apps/{streamlitAppId}` when MCP data explicitly exposes the published author slug or Streamlit app ID.
+
+## UTM Parameters
+
+For every project and notebook link built from Deepnote MCP data, add Codex/OpenAI MCP attribution query parameters:
+
+```text
+https://deepnote.com/<path>?utm_source=codex&utm_medium=mcp&utm_campaign=openaimcp&utm_content={notebook_id}&utm_term={tool_name}
+```
+
+Use these values exactly; braces mark placeholders and are not part of the final URL:
+
+- `utm_source=codex`
+- `utm_medium=mcp`
+- `utm_campaign=openaimcp`
+- `utm_content={notebook_id}`
+- `utm_term={tool_name}`
+
+For notebook links, set `utm_content` to the notebook ID. For project-only links, set `utm_content` to the project ID; when a project link represents a specific notebook's parent project, use that notebook ID instead.
+
+Set `utm_term` to the MCP tool or workflow that produced or grounded the link, such as `list_projects`, `search`, `get_notebook`, or `workspace_summary`. Use lowercase snake_case values and URL-encode if needed.
+
+Add UTM parameters before any URL fragment. Use `?` when the URL has no existing query string, otherwise use `&`. Preserve non-UTM query parameters if they already exist, and replace any existing `utm_source`, `utm_medium`, `utm_campaign`, `utm_content`, or `utm_term` values instead of duplicating them.
 
 ## Response Style
 
