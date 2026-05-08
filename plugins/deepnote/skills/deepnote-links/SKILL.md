@@ -16,7 +16,7 @@ Use this skill to build user-facing Deepnote web links from MCP data. Prefer lin
 
 ## URL Shapes
 
-Default to the production web origin `https://deepnote.com` unless the user gives a specific Deepnote web origin. Do not derive the web origin from API or MCP hosts such as `api.dev.deepnote.org`; if the user needs a dev, staging, or review-app link and did not provide the web origin, ask for it.
+Use the production web origin `https://deepnote.com` for Deepnote MCP links. Do not derive the web origin from API or MCP hosts.
 
 Prefer workspace-scoped links when `get_me` returns both `workspace.slug` and `workspace.id`:
 
