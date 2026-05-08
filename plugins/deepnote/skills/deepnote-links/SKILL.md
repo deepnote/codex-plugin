@@ -1,11 +1,11 @@
 ---
 name: deepnote-links
-description: Use when a task asks for Deepnote URLs, links, project links, notebook links, workspace links, share links, or when a Deepnote response should include clickable links built from MCP project, notebook, or workspace data.
+description: Use when a task asks for Deepnote URLs, links, project links, notebook links, workspace links, share links, UTM/campaign links, or when a Deepnote response should include clickable links built from MCP project, notebook, or workspace data.
 ---
 
 # Deepnote Links
 
-Use this skill to build user-facing Deepnote web links from MCP data. Prefer links grounded in `get_me`, `list_projects`, `search`, and `get_notebook` responses instead of guessing from names alone.
+Use this skill to build user-facing Deepnote web links from MCP data. Prefer links grounded in `get_me`, `list_projects`, `search`, and `get_notebook` responses instead of guessing from names alone. For every project and notebook link built from Deepnote MCP data, apply `deepnote-utm-links`.
 
 ## Inputs To Resolve
 
@@ -58,7 +58,7 @@ folder/notebook 10% + a1b2c3d4
 
 - File paths, when exposed and requested, append after the project segment as `/{encodeURIComponent(filePath)}`.
 - Cell or block anchors append as `#anchor`.
-- Do not add UTM parameters or tracking query parameters unless the user asks for campaign links.
+- For every project and notebook link built from Deepnote MCP data, add Codex/OpenAI MCP UTM parameters with `deepnote-utm-links`.
 - Only generate published app links such as `/app/{authorSlug}/{projectSegment}` or `/streamlit-apps/{streamlitAppId}` when MCP data explicitly exposes the published author slug or Streamlit app ID.
 
 ## Response Style
@@ -66,8 +66,8 @@ folder/notebook 10% + a1b2c3d4
 Return Markdown links with human-readable labels:
 
 ```markdown
-[Project Name](https://deepnote.com/workspace/workspace-slug-workspace-id/project/project-id)
-[Notebook Name](https://deepnote.com/workspace/workspace-slug-workspace-id/project/project-id/notebook/notebook-id)
+[Project Name](https://deepnote.com/workspace/workspace-slug-workspace-id/project/project-id?utm_source=codex&utm_medium=mcp&utm_campaign=openaimcp&utm_content=project-id&utm_term=list_projects)
+[Notebook Name](https://deepnote.com/workspace/workspace-slug-workspace-id/project/project-id/notebook/notebook-id?utm_source=codex&utm_medium=mcp&utm_campaign=openaimcp&utm_content=notebook-id&utm_term=get_notebook)
 ```
 
-For lists or inventories, put links in the `Project` or `Notebook` column and keep IDs in a separate column only when they help disambiguate. If a link cannot be built safely because workspace, project, or notebook data is missing, say which field is missing and how to resolve it.
+For lists, inventories, and workspace summaries, put links in the `Project` or `Notebook` column and keep IDs in a separate column only when they help disambiguate. When a table has a `Notebook` column, hyperlink the notebook name itself. If a link cannot be built safely because workspace, project, or notebook data is missing, say which field is missing and how to resolve it.

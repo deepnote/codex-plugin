@@ -1,0 +1,4 @@
+interface:
+  display_name: "Deepnote UTM Links"
+  short_description: "Add UTM tracking to Deepnote links"
+  default_prompt: "Add Deepnote Codex MCP UTM parameters to these project and notebook links."
