@@ -1,13 +1,13 @@
 # Deepnote Codex Plugin
 
-Use Deepnote from Codex to identify the current workspace, search resources, inspect notebooks, generate project and notebook links, list projects and integrations, map integration usage, read Deepnote docs, start notebook runs, and summarize run status and outputs.
+Use Deepnote from Codex to identify the current workspace, search resources, inspect notebooks, create projects, notebooks, and blocks, generate project and notebook links, list projects and integrations, map integration usage, read Deepnote docs, start notebook runs, and summarize run status and outputs.
 
 ## What Is Included
 
 - Codex marketplace manifest in `.agents/plugins/marketplace.json`
 - Deepnote plugin manifest in `plugins/deepnote/.codex-plugin/plugin.json`
 - Hosted Deepnote MCP configuration in `plugins/deepnote/.mcp.json`
-- Deepnote skills for workspace search, link generation, docs lookup, integration mapping, notebook inspection, and notebook execution workflows
+- Deepnote skills for workspace search, link generation, docs lookup, integration mapping, notebook inspection, notebook editing, and notebook execution workflows
 - Deepnote branding assets
 
 ## Requirements
@@ -67,14 +67,17 @@ The hosted Deepnote MCP server currently exposes these tools:
 - `list_integration_notebook_usages`: list notebooks containing SQL blocks that use an integration
 - `list_integration_block_usages`: list SQL blocks that use an integration
 - `get_notebook`: inspect notebook details, blocks, input variables, and last-run metadata
+- `create_project`: create a new project, optionally inside a folder
+- `create_notebook`: create an empty notebook inside a project
+- `create_block`: create a new block in a notebook
 - `create_run`: start a full notebook run, optionally with input values
 - `get_run`: inspect run status, errors, completion time, and snapshot content when available
 - `list_docs`: list Deepnote docs sections and article slugs
 - `get_doc`: fetch a Deepnote documentation article by slug
 
-The current hosted MCP toolset does not expose notebook editing, single-block execution, direct database schema browsing, environment mutation, permissions changes, publishing, or scheduling changes.
+The current hosted MCP toolset does not expose single-block execution, direct database schema browsing, environment mutation, permissions changes, publishing, or scheduling changes.
 
-When Deepnote MCP is connected, Codex should introduce it in one sentence: Deepnote MCP can identify the current workspace, search resources, list projects and integrations, inspect notebooks, map integration usage, read Deepnote docs, start notebook runs, and fetch run status; if you are not registered yet, register at deepnote.com and ready your Deepnote API key from the [Deepnote API docs](https://deepnote.com/docs/deepnote-api).
+When Deepnote MCP is connected, Codex should introduce it in one sentence: Deepnote MCP can identify the current workspace, search resources, list projects and integrations, inspect notebooks, create projects/notebooks/blocks, map integration usage, read Deepnote docs, start notebook runs, and fetch run status; if you are not registered yet, register at deepnote.com and ready your Deepnote API key from the [Deepnote API docs](https://deepnote.com/docs/deepnote-api).
 
 By default, Deepnote responses should be brief, concise, and information dense. Codex should lead with the answer, use tables and counts where they improve scanning, and avoid long explanations, raw snapshots, full logs, or exhaustive block listings unless the user asks for more detail.
 
@@ -120,6 +123,20 @@ Pass `pageToken` from `pagination.nextPageToken` to fetch the next page. Treat p
 ## Project And Notebook Links
 
 The [`deepnote-links`](plugins/deepnote/skills/deepnote-links/SKILL.md) skill covers how Codex should build workspace-aware Deepnote project and notebook links from MCP data.
+
+## Create Projects, Notebooks, And Blocks
+
+Use the [`deepnote-notebook-editing`](plugins/deepnote/skills/deepnote-notebook-editing/SKILL.md) skill when Codex needs to create Deepnote resources or add notebook blocks.
+
+The creation tools are non-idempotent: repeated calls create additional projects, notebooks, or blocks. Resolve the target workspace, project, notebook, and integration first with `get_me`, `search`, `list_projects`, `get_notebook`, or `list_integrations` when names or placement are ambiguous.
+
+- `create_project` requires `name` and accepts optional `folderId`. A new project includes a default empty notebook.
+- `create_notebook` requires `projectId` and accepts optional `name`. It creates an empty notebook and does not accept initial blocks.
+- `create_block` requires `notebookId` and `type`, accepts optional `content`, `metadata`, `position`, `includeNotebookBlockIds`, and SQL-only `integrationId`, and appends by default when `position` is omitted.
+
+For SQL blocks, pass the SQL integration as top-level `integrationId`. Do not put `sql_integration_id` inside `metadata`; Deepnote returns a validation error for that shape. `integrationId` is only valid for `sql` blocks and must reference a SQL-capable integration in the same workspace.
+
+Use zero-based `position` for ordered inserts. When placement matters, pass `includeNotebookBlockIds: true` and verify the final block order from the response or with `get_notebook`.
 
 ## Integration Usage Mapping
 
@@ -229,6 +246,9 @@ codex plugin marketplace upgrade deepnote
 - `Which Deepnote workspace am I connected to?`
 - `Give me links to my Deepnote projects.`
 - `Inspect this Deepnote notebook and summarize its inputs.`
+- `Create a Deepnote project named Revenue Analysis.`
+- `Create a notebook in this Deepnote project and add starter markdown and code blocks.`
+- `Add a SQL block to this notebook using my Snowflake integration.`
 - `Run this Deepnote notebook with customer_name set to Acme.`
 - `List Deepnote integrations matching Snowflake.`
 - `Show me where this Deepnote integration is used.`
@@ -239,9 +259,12 @@ codex plugin marketplace upgrade deepnote
 - If authentication fails, confirm `DEEPNOTE_MCP_TOKEN` is set in the environment Codex actually starts from.
 - If a resource is missing, check that the API key creator has access to the workspace, project, notebook, or integration.
 - If project listings look incomplete, check whether `pagination.hasMore` is true and continue with `pagination.nextPageToken`.
+- If creating a project, notebook, or block fails with `Insufficient permissions`, use an editor or admin API key, or project edit access where applicable.
+- If a block insertion fails, check that `notebookId`, `type`, and zero-based `position` are valid for the current notebook.
+- If a SQL block creation fails, confirm `integrationId` references a SQL integration in the same workspace and pass it as a top-level field.
 - If a notebook run with inputs fails before starting, check that each input key matches a `get_notebook` input `name` and that each value matches the input type.
 - If a run fails, ask Codex to inspect the run with `get_run` and summarize the error.
-- If Codex suggests an edit or environment change, remember that the current hosted MCP server is read/search/docs/usage mapping plus full-notebook execution only.
+- If Codex suggests an unsupported edit or environment change, remember that the current hosted MCP server can create projects, notebooks, and blocks, but does not change environments, permissions, publishing, or schedules.
 
 ## License
 
