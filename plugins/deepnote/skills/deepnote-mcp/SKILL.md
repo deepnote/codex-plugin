@@ -15,7 +15,7 @@ The plugin config registers the hosted server under the MCP server id `deepnote`
 
 When the Deepnote MCP server is connected and the user asks what is available, begin with this one-line sentence before details:
 
-Deepnote MCP can identify the current workspace, search resources, list projects and integrations, inspect notebooks, map integration usage, read Deepnote docs, start notebook runs, and fetch run status; if you are not registered yet, register at deepnote.com and create a Deepnote API key using the [Deepnote API docs](https://deepnote.com/docs/deepnote-api).
+Deepnote MCP can identify the current workspace, search resources, list projects and integrations, inspect notebooks, create projects/notebooks/blocks, map integration usage, read Deepnote docs, start notebook runs, and fetch run status; if you are not registered yet, register at deepnote.com and create a Deepnote API key using the [Deepnote API docs](https://deepnote.com/docs/deepnote-api).
 
 ## Available Hosted Tools
 
@@ -29,6 +29,9 @@ The hosted Deepnote MCP server currently exposes:
 - `list_integration_notebook_usages`: list notebooks that contain SQL blocks using an integration, optionally narrowed to one project.
 - `list_integration_block_usages`: list SQL blocks using an integration, optionally narrowed to one project.
 - `get_notebook`: get notebook details, blocks, input variables, and last-run metadata by notebook ID.
+- `create_project`: create a new Deepnote project, optionally inside a folder. Requires `name`; accepts optional `folderId`.
+- `create_notebook`: create an empty Deepnote notebook inside a project. Requires `projectId`; accepts optional `name`.
+- `create_block`: create a new block in a Deepnote notebook. Requires `notebookId` and `type`; accepts optional `content`, `metadata`, `position`, `includeNotebookBlockIds`, and SQL-only `integrationId`.
 - `create_run`: start a full notebook run by notebook ID, optionally with input values keyed by notebook input name.
 - `get_run`: fetch run status and snapshot content when available.
 - `list_docs`: return the Deepnote docs navigation tree.
@@ -40,11 +43,12 @@ The hosted Deepnote MCP server currently exposes:
 2. Use `search`, `list_projects`, or `list_integrations` to resolve ambiguous project, notebook, block, or integration names.
 3. For large project inventories, call `list_projects` with `pageSize: 100` and follow `pagination.nextPageToken` while `pagination.hasMore` is true, unless the user only needs a sample or a filtered result.
 4. Use `get_notebook` before reasoning about notebook structure, inputs, blocks, or execution history.
-5. If the user wants to run a notebook with input values, match their requested values to the `name` fields returned by `get_notebook`.
-6. Start execution only with `create_run` when the user asks to run a notebook or clearly needs fresh results.
-7. Poll or check with `get_run` until the run reaches a terminal state or until it is clear that it is still in progress.
-8. Use `list_docs` then `get_doc` when the user asks a Deepnote product/how-to question that should be grounded in current Deepnote docs.
-9. Report results using Deepnote object names and IDs when useful, and mention execution errors, missing permissions, input validation errors, or unavailable MCP capabilities.
+5. Use the `deepnote-notebook-editing` skill before creating projects, notebooks, or blocks; creation tools are non-idempotent.
+6. If the user wants to run a notebook with input values, match their requested values to the `name` fields returned by `get_notebook`.
+7. Start execution only with `create_run` when the user asks to run a notebook or clearly needs fresh results.
+8. Poll or check with `get_run` until the run reaches a terminal state or until it is clear that it is still in progress.
+9. Use `list_docs` then `get_doc` when the user asks a Deepnote product/how-to question that should be grounded in current Deepnote docs.
+10. Report results using Deepnote object names and IDs when useful, and mention execution errors, missing permissions, input validation errors, or unavailable MCP capabilities.
 
 ## Intent Routing
 
@@ -54,6 +58,7 @@ Route common user requests before choosing tools:
 | --- | --- | --- | --- |
 | Workspace status, heartbeat, overview, inventory, active notebooks, scheduled notebooks | Workspace Summary Workflow | `list_projects`, `list_integrations`, `get_notebook`, optional `get_run` | Workspace health line, key counts, notebook summary table with linked notebooks and integrations, notable findings |
 | A specific notebook, notebook contents, inputs, SQL, blocks, outputs, recent run state | Notebook Inspection Workflow | `search`, `get_notebook`, optional `get_run`, `list_integrations` | Notebook brief, run status, inputs table, block map, connection map, cautions, next actions |
+| Project creation, notebook creation, adding cells/blocks, scaffolding notebook content | `deepnote-notebook-editing` skill | `search`, `list_projects`, `get_notebook`, `list_integrations`, `create_project`, `create_notebook`, `create_block` | Created resource IDs and links, inserted block summary, final order when relevant |
 | Notebook execution, rerun, run with inputs, run status | Execution Workflow | `get_notebook`, `create_run`, `get_run` | Run card with ID, status, duration, inputs, result summary, failure reason |
 | Integrations, data connections, "what uses Snowflake/BigQuery/Postgres/etc." | Integration Mapping Workflow | `list_integrations`, `list_integration_project_usages`, `list_integration_notebook_usages`, `list_integration_block_usages` | Integration table and direct project/notebook/block usage references |
 | Project, notebook, or workspace links/URLs | `deepnote-links` skill | `get_me`, `list_projects` or `search`, optional `get_notebook` | Markdown links using workspace-aware Deepnote URL shapes with Codex/OpenAI MCP UTM attribution |
@@ -110,14 +115,28 @@ Keep the table concise for large workspaces: include active notebooks, scheduled
 
 Avoid calling notebooks "currently open" or "currently running" unless a current MCP tool exposes live session state. Prefer `recently run`, `scheduled`, `pending run`, or `last run`.
 
+## Creation Workflow
+
+Use `deepnote-notebook-editing` when creating projects, notebooks, or blocks. In brief:
+
+1. Resolve ambiguous names and IDs first with `search`, `list_projects`, `get_notebook`, or `list_integrations`.
+2. Treat `create_project`, `create_notebook`, and `create_block` as non-idempotent; repeated calls create additional resources.
+3. Use `create_project` with `name` and optional `folderId`; the created project includes a default empty notebook.
+4. Use `create_notebook` with `projectId` and optional `name`; it creates an empty notebook only.
+5. Use `create_block` with `notebookId` and `type`; optional `position` is a zero-based insertion index, and omitted `position` appends the block.
+6. For ordered inserts, pass `includeNotebookBlockIds: true` or verify final order with `get_notebook`.
+7. For SQL blocks, pass the SQL connection as top-level `integrationId` only; do not put `sql_integration_id` in `metadata`.
+8. Do not run newly created notebooks unless the user asks for execution.
+
 ## Safety Rules
 
 - Do not expose the bearer token or any secret values from integrations or notebook inputs. Refer to secret names only.
 - Avoid downloading or printing large datasets. Sample, summarize, or aggregate data unless the user explicitly asks for an export.
 - Treat notebook execution as potentially stateful and costly. The hosted MCP `create_run` tool starts a notebook run, not a single-cell edit or targeted cell run.
+- Treat project, notebook, and block creation as persistent write actions. Resolve targets carefully and report created IDs.
 - Run input overrides apply to one run only. Do not claim they changed notebook defaults.
 - If a tool returns `isError`, surface the user-facing error message concisely. For `create_run` failures such as workspace or parallel run limits, only call `get_run` if the `create_run` response includes a valid run ID; otherwise do not poll `get_run`.
-- The hosted MCP toolset is mostly read/search/docs/usage mapping plus notebook execution. Do not claim to edit notebooks, projects, integrations, permissions, schedules, or publishing through the Deepnote MCP server unless such tools are exposed in the current session.
+- The hosted MCP toolset can create projects, notebooks, and blocks. Do not claim to change integrations, permissions, schedules, publishing, environments, or other resource settings unless such tools are exposed in the current session.
 
 ## Response Style
 

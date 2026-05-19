@@ -13,7 +13,7 @@ description: Use when reading, reviewing, inspecting, or reasoning about hosted 
 4. When reporting inputs, include the input `name`, `type`, current `value`, and `label` when useful.
 5. When SQL connection usage matters, use `list_integrations` and the integration usage tools to confirm project, notebook, or block references instead of inferring solely from names.
 6. When asked to review or explain a notebook, ground the answer in specific notebook/block names or IDs when useful.
-7. If the user asks for an edit, say whether the currently exposed Deepnote MCP tools support that edit. The hosted toolset currently does not expose notebook write tools.
+7. If the user asks to create a project, create a notebook, add blocks/cells, or scaffold notebook content, use the `deepnote-notebook-editing` skill.
 
 ## Notebook Inspection Output
 
@@ -54,7 +54,7 @@ When MCP does not expose a detail, say `Not visible via MCP` rather than inferri
 
 - Before suggesting code changes, inspect nearby blocks for imports, shared variables, SQL connections, inputs, and upstream assumptions.
 - Prefer deterministic notebook code. Avoid hidden global state, implicit external files, or hard-coded credentials.
-- Do not claim an edit was applied unless a write-capable tool is available and reports success.
+- Do not claim an edit was applied unless a write-capable tool is available and reports success. For project, notebook, and block creation, use `deepnote-notebook-editing`.
 - If you run a notebook, pass requested input values through `create_run.inputs` using the input `name` fields returned by `get_notebook`, then capture run status with `get_run` and summarize snapshot content or errors when available.
 - Run input values do not change the notebook's saved default input values.
 - For SQL blocks, preserve the existing connection or data source in recommendations unless the user asks to move it.
