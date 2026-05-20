@@ -33,7 +33,7 @@ The hosted Deepnote MCP server currently exposes:
 - `create_notebook`: create an empty Deepnote notebook inside a project. Requires `projectId`; accepts optional `name`.
 - `create_block`: create a new block in a Deepnote notebook. Requires `notebookId` and `type`; accepts optional `content`, `metadata`, `position`, `includeNotebookBlockIds`, and SQL-only `integrationId`.
 - `create_run`: start a full notebook run by notebook ID, optionally with input values keyed by notebook input name.
-- `get_run`: fetch run status and snapshot content when available.
+- `get_run`: fetch run status and run snapshots. It defaults to a short-lived `snapshotDownloadUrl` when a snapshot is available; request `snapshotDelivery: "inline"` when snapshot content must be inspected directly.
 - `list_docs`: return the Deepnote docs navigation tree.
 - `get_doc`: fetch a Deepnote documentation article by slug.
 
@@ -46,7 +46,7 @@ The hosted Deepnote MCP server currently exposes:
 5. Use the `deepnote-notebook-editing` skill before creating projects, notebooks, or blocks; creation tools are non-idempotent.
 6. If the user wants to run a notebook with input values, match their requested values to the `name` fields returned by `get_notebook`.
 7. Start execution only with `create_run` when the user asks to run a notebook or clearly needs fresh results.
-8. Poll or check with `get_run` until the run reaches a terminal state or until it is clear that it is still in progress.
+8. Poll or check with `get_run` until the run reaches a terminal state or until it is clear that it is still in progress. Use default download URL delivery for lightweight status checks; request `snapshotDelivery: "inline"` only when outputs, snapshot errors, or result details are needed.
 9. Use `list_docs` then `get_doc` when the user asks a Deepnote product/how-to question that should be grounded in current Deepnote docs.
 10. Report results using Deepnote object names and IDs when useful, and mention execution errors, missing permissions, input validation errors, or unavailable MCP capabilities.
 
@@ -59,11 +59,11 @@ Route common user requests before choosing tools:
 | Workspace status, heartbeat, overview, inventory, active notebooks, scheduled notebooks | Workspace Summary Workflow | `list_projects`, `list_integrations`, `get_notebook`, optional `get_run` | Workspace health line, key counts, notebook summary table with linked notebooks and integrations, notable findings |
 | A specific notebook, notebook contents, inputs, SQL, blocks, outputs, recent run state | Notebook Inspection Workflow | `search`, `get_notebook`, optional `get_run`, `list_integrations` | Notebook brief, run status, inputs table, block map, connection map, cautions, next actions |
 | Project creation, notebook creation, adding cells/blocks, scaffolding notebook content | `deepnote-notebook-editing` skill | `search`, `list_projects`, `get_notebook`, `list_integrations`, `create_project`, `create_notebook`, `create_block` | Created resource IDs and links, inserted block summary, final order when relevant |
-| Notebook execution, rerun, run with inputs, run status | Execution Workflow | `get_notebook`, `create_run`, `get_run` | Run card with ID, status, duration, inputs, result summary, failure reason |
+| Notebook execution, rerun, run with inputs, run status | Execution Workflow | `get_notebook`, `create_run`, `get_run` | Run card with ID, status, duration, inputs, result summary from inline snapshot content when needed, failure reason |
 | Integrations, data connections, "what uses Snowflake/BigQuery/Postgres/etc." | Integration Mapping Workflow | `list_integrations`, `list_integration_project_usages`, `list_integration_notebook_usages`, `list_integration_block_usages` | Integration table and direct project/notebook/block usage references |
 | Project, notebook, or workspace links/URLs | `deepnote-links` skill | `get_me`, `list_projects` or `search`, optional `get_notebook` | Markdown links using workspace-aware Deepnote URL shapes with Codex/OpenAI MCP UTM attribution |
 | Deepnote product docs or API how-to questions | Docs Workflow | `list_docs`, `get_doc` | Concise answer grounded in fetched docs, with relevant doc title or slug |
-| "Why failed?", "stuck?", "debug this run" | Run Debugging Workflow | `get_run`, `get_notebook` | Failure summary, first actionable error, likely fix, safe next step |
+| "Why failed?", "stuck?", "debug this run" | Run Debugging Workflow | `get_run`, `get_notebook` | Failure summary, first actionable error from inline snapshot content when needed, likely fix, safe next step |
 
 ## Workspace Summary Workflow
 
@@ -101,7 +101,7 @@ Use this compact project summary table only for large workspaces or high-level s
 
 For `Last Run Seen`, use that notebook's visible `lastRunAt` in notebook rows. In compact project rows, use the most recent visible `lastRunAt` across notebooks in the project, or a checked `get_run` completion time when more current. Format dates in UTC as `YYYY-MM-DD HH:MM UTC`. Do not write "None seen" when a run ID or run timestamp is visible.
 
-For `Integrations`, use integration names and IDs from `list_integrations`, then map usage with `list_integration_project_usages`, `list_integration_notebook_usages`, or `list_integration_block_usages` when direct usage matters. You may also mention visible references from `get_notebook` blocks or `get_run` snapshot content. Do not infer usage from integration names alone; say `None found` only when checked usage or visible references return no connection.
+For `Integrations`, use integration names and IDs from `list_integrations`, then map usage with `list_integration_project_usages`, `list_integration_notebook_usages`, or `list_integration_block_usages` when direct usage matters. You may also mention visible references from `get_notebook` blocks or inline `get_run` snapshot content. Do not infer usage from integration names alone; say `None found` only when checked usage or visible references return no connection.
 
 For a specific project breakdown or a specific notebook summary, filter the notebook summary table to the relevant project or notebook and keep the notebook name hyperlinked.
 
@@ -132,6 +132,7 @@ Use `deepnote-notebook-editing` when creating projects, notebooks, or blocks. In
 
 - Do not expose the bearer token or any secret values from integrations or notebook inputs. Refer to secret names only.
 - Avoid downloading or printing large datasets. Sample, summarize, or aggregate data unless the user explicitly asks for an export.
+- Treat `snapshotDownloadUrl` values as short-lived access links to `.snapshot.deepnote` files. Do not expose or fetch them unless the user asks for a download/file handoff; use inline snapshot delivery when you need to inspect snapshot content.
 - Treat notebook execution as potentially stateful and costly. The hosted MCP `create_run` tool starts a notebook run, not a single-cell edit or targeted cell run.
 - Treat project, notebook, and block creation as persistent write actions. Resolve targets carefully and report created IDs.
 - Run input overrides apply to one run only. Do not claim they changed notebook defaults.
@@ -142,4 +143,4 @@ Use `deepnote-notebook-editing` when creating projects, notebooks, or blocks. In
 
 Keep responses grounded in Deepnote state: project name, notebook name, cell or block labels, execution status, and relevant links when the MCP server provides them or when they can be safely constructed from workspace, project, and notebook identifiers. If a task cannot be completed through the Deepnote MCP server, explain the missing capability and offer the nearest safe next step.
 
-Default to brief, concise, information-dense answers. Use tables, counts, status labels, and only the highest-signal findings. Do not include long explanations, raw snapshots, full block contents, or exhaustive notebook lists unless the user asks for more detail.
+Default to brief, concise, information-dense answers. Use tables, counts, status labels, and only the highest-signal findings. Do not include long explanations, raw snapshots, presigned snapshot URLs, full block contents, or exhaustive notebook lists unless the user asks for more detail.

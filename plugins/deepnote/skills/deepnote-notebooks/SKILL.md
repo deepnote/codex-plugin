@@ -55,7 +55,7 @@ When MCP does not expose a detail, say `Not visible via MCP` rather than inferri
 - Before suggesting code changes, inspect nearby blocks for imports, shared variables, SQL connections, inputs, and upstream assumptions.
 - Prefer deterministic notebook code. Avoid hidden global state, implicit external files, or hard-coded credentials.
 - Do not claim an edit was applied unless a write-capable tool is available and reports success. For project, notebook, and block creation, use `deepnote-notebook-editing`.
-- If you run a notebook, pass requested input values through `create_run.inputs` using the input `name` fields returned by `get_notebook`, then capture run status with `get_run` and summarize snapshot content or errors when available.
+- If you run a notebook, pass requested input values through `create_run.inputs` using the input `name` fields returned by `get_notebook`, then capture run status with `get_run`. Use the default snapshot download URL delivery for status checks; request `snapshotDelivery: "inline"` when you need to summarize snapshot content or errors.
 - Run input values do not change the notebook's saved default input values.
 - For SQL blocks, preserve the existing connection or data source in recommendations unless the user asks to move it.
 - Before running a notebook, flag cells that print `os.environ`, environment variables, credentials, tokens, or broad secret dumps. Do not run those notebooks unless the user explicitly confirms after the risk is named.
