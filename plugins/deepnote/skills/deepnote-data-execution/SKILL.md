@@ -85,4 +85,4 @@ For failed or stuck runs, use a debugging report:
 | Likely cause | `missing input`, `missing file`, `server not listening`, `dependency failure`, or `unknown from MCP` |
 | Safe next step | `inspect notebook`, `rerun with inputs`, `start serving notebook`, or `manual Deepnote action needed` |
 
-If the run snapshot is very large, summarize block counts, failed blocks, final outputs, and the first actionable error instead of pasting the snapshot. Prefer omitting `snapshotDelivery` unless inline content is necessary for the user's request.
+When inspecting a large run snapshot, request inline delivery only when necessary, then summarize block counts, failed blocks, final outputs, and the first actionable error instead of pasting the snapshot.
