@@ -33,7 +33,7 @@ The hosted Deepnote MCP server currently exposes:
 - `create_notebook`: create an empty Deepnote notebook inside a project. Requires `projectId`; accepts optional `name`.
 - `create_block`: create a new block in a Deepnote notebook. Requires `notebookId` and `type`; accepts optional `content`, `metadata`, `position`, `includeNotebookBlockIds`, and SQL-only `integrationId`.
 - `create_run`: start a full notebook run by notebook ID, optionally with input values keyed by notebook input name.
-- `get_run`: fetch run status and run snapshots. It defaults to a short-lived `snapshotDownloadUrl` when a snapshot is available; request `snapshotDelivery: "inline"` when snapshot content must be inspected directly.
+- `get_run`: fetch run status and run snapshots. When `snapshotDelivery` is omitted, it returns a short-lived `snapshotDownloadUrl` when a snapshot is available; this is equivalent to `snapshotDelivery: "downloadUrl"`. Request `snapshotDelivery: "inline"` when snapshot content must be inspected directly.
 - `list_docs`: return the Deepnote docs navigation tree.
 - `get_doc`: fetch a Deepnote documentation article by slug.
 
@@ -46,7 +46,7 @@ The hosted Deepnote MCP server currently exposes:
 5. Use the `deepnote-notebook-editing` skill before creating projects, notebooks, or blocks; creation tools are non-idempotent.
 6. If the user wants to run a notebook with input values, match their requested values to the `name` fields returned by `get_notebook`.
 7. Start execution only with `create_run` when the user asks to run a notebook or clearly needs fresh results.
-8. Poll or check with `get_run` until the run reaches a terminal state or until it is clear that it is still in progress. Use default download URL delivery for lightweight status checks; request `snapshotDelivery: "inline"` only when outputs, snapshot errors, or result details are needed.
+8. Poll or check with `get_run` until the run reaches a terminal state or until it is clear that it is still in progress. Omit `snapshotDelivery` for lightweight status checks so the default download URL delivery is used; request `snapshotDelivery: "inline"` only when outputs, snapshot errors, or result details are needed.
 9. Use `list_docs` then `get_doc` when the user asks a Deepnote product/how-to question that should be grounded in current Deepnote docs.
 10. Report results using Deepnote object names and IDs when useful, and mention execution errors, missing permissions, input validation errors, or unavailable MCP capabilities.
 

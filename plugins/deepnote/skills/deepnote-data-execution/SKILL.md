@@ -13,7 +13,7 @@ Use the Deepnote MCP server for the execution and context it currently exposes:
 - `list_integrations` for workspace integration names and types.
 - `list_integration_project_usages`, `list_integration_notebook_usages`, and `list_integration_block_usages` for direct integration usage mapping.
 - `create_run` to start full-notebook execution, optionally with input values.
-- `get_run` for run status, errors, completion time, and run snapshots. By default it returns a short-lived `snapshotDownloadUrl` when a snapshot is available; request `snapshotDelivery: "inline"` only when you need `snapshotContent` in the tool response.
+- `get_run` for run status, errors, completion time, and run snapshots. When `snapshotDelivery` is omitted, it returns a short-lived `snapshotDownloadUrl` when a snapshot is available; this is equivalent to `snapshotDelivery: "downloadUrl"`. Request `snapshotDelivery: "inline"` only when you need `snapshotContent` in the tool response.
 - `get_me` for the authenticated workspace, API key type, and caller access level when execution permissions or workspace identity matter.
 
 Do not claim direct access to database schemas, table previews, file metadata, query previews, or environment configuration unless a current MCP tool explicitly exposes that data.
@@ -26,7 +26,7 @@ Do not claim direct access to database schemas, table previews, file metadata, q
 4. Check whether execution may mutate data, call external services, trigger schedules, or consume significant compute.
 5. Use `create_run` only for full-notebook execution by `notebookId`; the hosted MCP server does not currently expose single-block execution.
 6. If `create_run` returns an MCP error, report that error and stop; do not call `get_run` unless a run ID was returned.
-7. Use `get_run` to inspect status, errors, completion time, and snapshot availability before reporting results. For routine status checks, use the default `snapshotDelivery: "downloadUrl"` behavior; request `snapshotDelivery: "inline"` when you need to inspect notebook outputs, snapshot errors, or result details.
+7. Use `get_run` to inspect status, errors, completion time, and snapshot availability before reporting results. For routine status checks, omit `snapshotDelivery` so the default download URL delivery is used; request `snapshotDelivery: "inline"` when you need to inspect notebook outputs, snapshot errors, or result details.
 
 Before starting a run, inspect the notebook for cells that print environment variables, secrets, credentials, or entire configuration objects. If found, warn the user and get explicit confirmation before running. Also warn before running notebooks that start servers, send bulk requests, call external services, or mutate data.
 
@@ -44,7 +44,7 @@ If the user provides a label instead of a name, inspect `get_notebook` inputs an
 
 ## Run Snapshots
 
-`get_run` defaults to returning `snapshotDownloadUrl` for available `.snapshot.deepnote` files and `snapshotContent: null`. The URL is short-lived and grants access to the run snapshot, so do not paste it into the final answer unless the user asks for a download link or file handoff.
+When `snapshotDelivery` is omitted, `get_run` returns `snapshotDownloadUrl` for available `.snapshot.deepnote` files and `snapshotContent: null`; this is equivalent to `snapshotDelivery: "downloadUrl"`. The URL is short-lived and grants access to the run snapshot, so do not paste it into the final answer unless the user asks for a download link or file handoff.
 
 Use `snapshotDelivery: "inline"` when the user asks you to inspect outputs, summarize results, diagnose a failed run from snapshot details, map visible references from the snapshot, or otherwise reason over the snapshot content. Inline snapshots can be large and sensitive, so summarize the relevant blocks, outputs, failures, or data shape instead of dumping raw content.
 
@@ -85,4 +85,4 @@ For failed or stuck runs, use a debugging report:
 | Likely cause | `missing input`, `missing file`, `server not listening`, `dependency failure`, or `unknown from MCP` |
 | Safe next step | `inspect notebook`, `rerun with inputs`, `start serving notebook`, or `manual Deepnote action needed` |
 
-If the run snapshot is very large, summarize block counts, failed blocks, final outputs, and the first actionable error instead of pasting the snapshot. Prefer the default download URL delivery unless inline content is necessary for the user's request.
+If the run snapshot is very large, summarize block counts, failed blocks, final outputs, and the first actionable error instead of pasting the snapshot. Prefer omitting `snapshotDelivery` unless inline content is necessary for the user's request.
