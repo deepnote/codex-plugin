@@ -63,6 +63,7 @@ The hosted Deepnote MCP server currently exposes these tools:
 - `get_me`: get the calling API key, creator user, workspace, and access level
 - `list_projects`: list workspace projects, optionally filtered by name, with cursor pagination
 - `list_integrations`: list workspace integrations, optionally filtered by name or type
+- `get_integration`: inspect integration details and cached table structure
 - `list_integration_project_usages`: list projects connected to an integration
 - `list_integration_notebook_usages`: list notebooks containing SQL blocks that use an integration
 - `list_integration_block_usages`: list SQL blocks that use an integration
@@ -70,7 +71,10 @@ The hosted Deepnote MCP server currently exposes these tools:
 - `create_project`: create a new project, optionally inside a folder
 - `create_notebook`: create an empty notebook inside a project
 - `create_block`: create a new block in a notebook
+- `update_block`: update an existing block's content or SQL integration
+- `reorder_notebook_blocks`: move existing blocks within a notebook
 - `create_run`: start a full notebook run, optionally with input values
+- `list_notebook_runs`: list recent and historical notebook runs
 - `get_run`: inspect run status, errors, completion time, and snapshot content when available
 - `list_docs`: list Deepnote docs sections and article slugs
 - `get_doc`: fetch a Deepnote documentation article by slug
@@ -79,7 +83,7 @@ The hosted MCP server also exposes capabilities beyond the tools listed above. I
 
 The hosted MCP server cannot execute a single block, browse database schemas directly, upload arbitrary project files, or change schedules, permissions, environments, hardware, credentials, or secrets.
 
-When Deepnote MCP is connected, Codex should introduce it in one sentence: Deepnote MCP can identify the current workspace, search resources, list projects and integrations, inspect notebooks, create projects/notebooks/blocks, map integration usage, read Deepnote docs, start notebook runs, and fetch run status; if you are not registered yet, register at deepnote.com and ready your Deepnote API key from the [Deepnote API docs](https://deepnote.com/docs/deepnote-api).
+When Deepnote MCP is connected, Codex should introduce it in one sentence: Deepnote MCP can identify the current workspace, search resources, list projects and integrations, inspect notebooks, create and edit notebook structure, map integration usage and cached table structure, read Deepnote docs, start notebook runs, and fetch run status and history; if you are not registered yet, register at deepnote.com and ready your Deepnote API key from the [Deepnote API docs](https://deepnote.com/docs/deepnote-api).
 
 By default, Deepnote responses should be brief, concise, and information dense. Codex should lead with the answer, use tables and counts where they improve scanning, and avoid long explanations, raw snapshots, full logs, or exhaustive block listings unless the user asks for more detail.
 
@@ -267,9 +271,13 @@ codex plugin marketplace upgrade deepnote
 - `Inspect this Deepnote notebook and summarize its inputs.`
 - `Create a Deepnote project named Revenue Analysis.`
 - `Create a notebook in this Deepnote project and add starter markdown and code blocks.`
+- `Update this Deepnote notebook block with the revised SQL.`
 - `Add a SQL block to this notebook using my Snowflake integration.`
+- `Move these Deepnote notebook blocks to the top of the notebook.`
+- `Show me the recent runs for this Deepnote notebook.`
 - `Run this Deepnote notebook with customer_name set to Acme.`
 - `List Deepnote integrations matching Snowflake.`
+- `Show cached tables for my Snowflake integration.`
 - `Show me where this Deepnote integration is used.`
 - `Look up the Deepnote docs for scheduled notebooks.`
 
@@ -283,7 +291,7 @@ codex plugin marketplace upgrade deepnote
 - If a SQL block creation fails, confirm `integrationId` references a SQL integration in the same workspace and pass it as a top-level field.
 - If a notebook run with inputs fails before starting, check that each input key matches a `get_notebook` input `name` and that each value matches the input type.
 - If a run fails, ask Codex to inspect the run with `get_run` and summarize the error.
-- If Codex suggests an unsupported edit or environment change, remember the boundary: the hosted MCP server can create projects, notebooks, and blocks, can create, inspect, attach, and detach integrations, and can enable or disable static-site sharing and viewer API access. If `publish_static_site` is advertised, it can publish files only beneath the static-site root; it still cannot upload arbitrary project files or change schedules, permissions, environments, hardware, credentials, or secrets.
+- If Codex suggests an unsupported edit or environment change, remember the boundary: the hosted MCP server can create projects, notebooks, and blocks, update and reorder blocks, create, inspect, attach, and detach integrations, and enable or disable static-site sharing and viewer API access. If `publish_static_site` is advertised, it can publish files only beneath the static-site root; it still cannot upload arbitrary project files or change schedules, permissions, environments, hardware, credentials, or secrets.
 
 ## License
 
