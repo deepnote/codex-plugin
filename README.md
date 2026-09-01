@@ -83,7 +83,7 @@ The hosted MCP server also exposes capabilities beyond the tools listed above. I
 
 The hosted MCP server cannot execute a single block, browse database schemas directly, upload the website files behind a static site, or change schedules, permissions, environments, hardware, credentials, or secrets.
 
-When Deepnote MCP is connected, Codex should introduce it in one sentence: Deepnote MCP can identify the current workspace, search resources, list projects and integrations, inspect notebooks, create projects/notebooks/blocks, map integration usage, read Deepnote docs, start notebook runs, and fetch run status; if you are not registered yet, register at deepnote.com and ready your Deepnote API key from the [Deepnote API docs](https://deepnote.com/docs/deepnote-api).
+When Deepnote MCP is connected, Codex should introduce it in one sentence: Deepnote MCP can identify the current workspace, search resources, list projects and integrations, inspect notebooks, create and edit notebook structure, map integration usage and cached table structure, read Deepnote docs, start notebook runs, and fetch run status and history; if you are not registered yet, register at deepnote.com and ready your Deepnote API key from the [Deepnote API docs](https://deepnote.com/docs/deepnote-api).
 
 By default, Deepnote responses should be brief, concise, and information dense. Codex should lead with the answer, use tables and counts where they improve scanning, and avoid long explanations, raw snapshots, full logs, or exhaustive block listings unless the user asks for more detail.
 
@@ -274,7 +274,7 @@ codex plugin marketplace upgrade deepnote
 - If a SQL block creation fails, confirm `integrationId` references a SQL integration in the same workspace and pass it as a top-level field.
 - If a notebook run with inputs fails before starting, check that each input key matches a `get_notebook` input `name` and that each value matches the input type.
 - If a run fails, ask Codex to inspect the run with `get_run` and summarize the error.
-- If Codex suggests an unsupported edit or environment change, remember the boundary: the hosted MCP server can create projects, notebooks, and blocks, can create, inspect, attach, and detach integrations, and can enable or disable static-site sharing and viewer API access, but it cannot upload the underlying website files or change schedules, permissions, environments, hardware, credentials, or secrets.
+- If Codex suggests an unsupported edit or environment change, remember the boundary: the hosted MCP server can create projects, notebooks, and blocks, update and reorder blocks, create, inspect, attach, and detach integrations, and enable or disable static-site sharing and viewer API access, but it cannot upload the underlying website files or change schedules, permissions, environments, hardware, credentials, or secrets.
 
 ## License
 

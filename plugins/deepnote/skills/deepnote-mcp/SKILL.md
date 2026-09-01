@@ -142,7 +142,7 @@ Use `deepnote-notebook-editing` when creating projects, notebooks, or blocks or 
 - Avoid downloading or printing large datasets. Sample, summarize, or aggregate data unless the user explicitly asks for an export.
 - Treat `snapshotDownloadUrl` values as short-lived access links to `.snapshot.deepnote` files. Do not expose or fetch them unless the user asks for a download/file handoff; use inline snapshot delivery when you need to inspect snapshot content.
 - Treat notebook execution as potentially stateful and costly. The hosted MCP `create_run` tool starts a notebook run, not a single-cell edit or targeted cell run.
-- Treat project, notebook, and block creation as persistent write actions. Resolve targets carefully and report created IDs.
+- Treat project, notebook, and block creation, block updates, and block reordering as persistent write actions. Resolve targets carefully and report affected IDs.
 - Run input overrides apply to one run only. Do not claim they changed notebook defaults.
 - If a tool returns `isError`, surface the user-facing error message concisely. For `create_run` failures such as workspace or parallel run limits, only call `get_run` if the `create_run` response includes a valid run ID; otherwise do not poll `get_run`.
 - The hosted MCP toolset can create projects, notebooks, and blocks. It can also create, inspect, attach, and detach integrations, and enable or disable static-site sharing and viewer API access. It cannot upload the underlying website files, and it cannot change schedules, permissions, environments, hardware, credentials, or secrets.
