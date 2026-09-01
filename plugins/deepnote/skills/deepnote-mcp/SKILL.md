@@ -62,6 +62,7 @@ Route common user requests before choosing tools:
 | Notebook execution, rerun, run with inputs, run status | Execution Workflow | `get_notebook`, `create_run`, `get_run` | Run card with ID, status, duration, inputs, result summary from inline snapshot content when needed, failure reason |
 | Integrations, data connections, "what uses Snowflake/BigQuery/Postgres/etc." | Integration Mapping Workflow | `list_integrations`, `list_integration_project_usages`, `list_integration_notebook_usages`, `list_integration_block_usages` | Integration table and direct project/notebook/block usage references |
 | Project, notebook, or workspace links/URLs | `deepnote-links` skill | `get_me`, `list_projects` or `search`, optional `get_notebook` | Markdown links using workspace-aware Deepnote URL shapes with Codex/OpenAI MCP UTM attribution |
+| Static dashboard or HTML site authoring, publishing, unpublishing, viewer API access | Static Site Workflow | local authoring, `publish_static_site`, `update_project` | Canonical site URL, publish counts, sharing state, viewer API state |
 | Deepnote product docs or API how-to questions | Docs Workflow | `list_docs`, `get_doc` | Concise answer grounded in fetched docs, with relevant doc title or slug |
 | "Why failed?", "stuck?", "debug this run" | Run Debugging Workflow | `get_run`, `get_notebook` | Failure summary, first actionable error from inline snapshot content when needed, likely fix, safe next step |
 
@@ -128,6 +129,23 @@ Use `deepnote-notebook-editing` when creating projects, notebooks, or blocks. In
 7. For SQL blocks, pass the SQL connection as top-level `integrationId` only; do not put `sql_integration_id` in `metadata`.
 8. Do not run newly created notebooks unless the user asks for execution.
 
+## Static Site Workflow
+
+1. Author and validate the HTML, CSS, and JavaScript in the local agent workspace.
+2. If a local shell and the Deepnote CLI are available, use `deepnote publish ./dist --project-id
+   <uuid>`; it remains the preferred path for local builds and larger sites.
+3. If deployment must happen through hosted MCP, check the connected server's advertised tools and
+   use `publish_static_site` when present. Send the final file contents in one call.
+4. Use the canonical URL returned by the publish operation. Never construct a static-site hostname.
+5. To change access later without changing files, use `update_project` with
+   `staticFiles.sharingEnabled` and/or `staticFiles.apiAccessEnabled`. Disabling sharing also disables
+   viewer API access; re-enabling sharing serves the retained files again.
+6. Do not execute a notebook to write published files and do not look for generic file-write tools.
+
+Publishing makes the files available through the project's shared static site. Never include API
+keys, personal tokens, `.env` contents, or other secrets. Viewer API access is separately opt-in and
+should be enabled only for browser apps that need the viewer-scoped Deepnote run API.
+
 ## Safety Rules
 
 - Do not expose the bearer token or any secret values from integrations or notebook inputs. Refer to secret names only.
@@ -137,7 +155,7 @@ Use `deepnote-notebook-editing` when creating projects, notebooks, or blocks. In
 - Treat project, notebook, and block creation as persistent write actions. Resolve targets carefully and report created IDs.
 - Run input overrides apply to one run only. Do not claim they changed notebook defaults.
 - If a tool returns `isError`, surface the user-facing error message concisely. For `create_run` failures such as workspace or parallel run limits, only call `get_run` if the `create_run` response includes a valid run ID; otherwise do not poll `get_run`.
-- The hosted MCP toolset can create projects, notebooks, and blocks. It can also create, inspect, attach, and detach integrations, and enable or disable static-site sharing and viewer API access. It cannot upload the underlying website files, and it cannot change schedules, permissions, environments, hardware, credentials, or secrets.
+- The hosted MCP toolset can create projects, notebooks, and blocks. It can also create, inspect, attach, and detach integrations, and enable or disable static-site sharing and viewer API access. When `publish_static_site` is advertised, it can publish only beneath the static-site root; it cannot upload arbitrary project files, and it cannot change schedules, permissions, environments, hardware, credentials, or secrets.
 - The tool list in this skill is a documented subset, not a complete inventory. Before telling a user that a Deepnote action is impossible, check the tools the connected server actually advertises in the current session, and do not claim to have used a tool that is not exposed there.
 
 ## Response Style

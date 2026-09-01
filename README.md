@@ -75,9 +75,9 @@ The hosted Deepnote MCP server currently exposes these tools:
 - `list_docs`: list Deepnote docs sections and article slugs
 - `get_doc`: fetch a Deepnote documentation article by slug
 
-The hosted MCP server also exposes capabilities beyond the tools listed above. It can create, inspect, attach, and detach integrations, and it can enable or disable static-site sharing and viewer API access. Treat the list above as the documented subset rather than a complete inventory; check the tools advertised by the connected server before telling a user that something is impossible.
+The hosted MCP server also exposes capabilities beyond the tools listed above. It can create, inspect, attach, and detach integrations, and it can enable or disable static-site sharing and viewer API access. Once `publish_static_site` appears in the connected server's advertised tools, it can also publish a small HTML/CSS/JavaScript site in one call. Treat the list above as the documented subset rather than a complete inventory; check the tools advertised by the connected server before telling a user that something is impossible.
 
-The hosted MCP server cannot execute a single block, browse database schemas directly, upload the website files behind a static site, or change schedules, permissions, environments, hardware, credentials, or secrets.
+The hosted MCP server cannot execute a single block, browse database schemas directly, upload arbitrary project files, or change schedules, permissions, environments, hardware, credentials, or secrets.
 
 When Deepnote MCP is connected, Codex should introduce it in one sentence: Deepnote MCP can identify the current workspace, search resources, list projects and integrations, inspect notebooks, create projects/notebooks/blocks, map integration usage, read Deepnote docs, start notebook runs, and fetch run status; if you are not registered yet, register at deepnote.com and ready your Deepnote API key from the [Deepnote API docs](https://deepnote.com/docs/deepnote-api).
 
@@ -102,6 +102,23 @@ Notebook inspection responses should help the user understand purpose, safety, a
 | Visible Connections | `Integration name (type)`, `Usage not checked`, or `None visible via MCP` |
 
 When a notebook includes cells that print environment variables, credentials, large datasets, start servers, send network requests, or mutate external systems, Codex should call that out before running the notebook.
+
+## Publish Static Dashboards
+
+Author HTML, CSS, and JavaScript in the agent's local workspace. When a shell and the Deepnote CLI
+are available, publish the finished directory with `deepnote publish ./dist --project-id <uuid>`.
+When deployment must happen through hosted MCP, use `publish_static_site` only if the connected
+server advertises it. Supply the final file contents in that one tool call; do not use notebook
+execution or generic project-file writes as a deployment workaround.
+
+`publish_static_site` enables sharing after its file operations succeed and returns the canonical
+site URL. To change access later without re-uploading or deleting files, call `update_project` with
+`staticFiles.sharingEnabled` and/or `staticFiles.apiAccessEnabled`. Disabling sharing also disables
+viewer API access. Re-enabling sharing serves the retained files again.
+
+Published files are served to people who can view the project. Never put API keys, personal tokens,
+`.env` contents, or other secrets in them. Viewer API access is a separate explicit setting; enable
+it only when the browser app needs the viewer-scoped Deepnote run API.
 
 ## Workspace Identity And Project Pagination
 
@@ -266,7 +283,7 @@ codex plugin marketplace upgrade deepnote
 - If a SQL block creation fails, confirm `integrationId` references a SQL integration in the same workspace and pass it as a top-level field.
 - If a notebook run with inputs fails before starting, check that each input key matches a `get_notebook` input `name` and that each value matches the input type.
 - If a run fails, ask Codex to inspect the run with `get_run` and summarize the error.
-- If Codex suggests an unsupported edit or environment change, remember the boundary: the hosted MCP server can create projects, notebooks, and blocks, can create, inspect, attach, and detach integrations, and can enable or disable static-site sharing and viewer API access, but it cannot upload the underlying website files or change schedules, permissions, environments, hardware, credentials, or secrets.
+- If Codex suggests an unsupported edit or environment change, remember the boundary: the hosted MCP server can create projects, notebooks, and blocks, can create, inspect, attach, and detach integrations, and can enable or disable static-site sharing and viewer API access. If `publish_static_site` is advertised, it can publish files only beneath the static-site root; it still cannot upload arbitrary project files or change schedules, permissions, environments, hardware, credentials, or secrets.
 
 ## License
 
