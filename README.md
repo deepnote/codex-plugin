@@ -63,6 +63,7 @@ The hosted Deepnote MCP server currently exposes these tools:
 - `get_me`: get the calling API key, creator user, workspace, and access level
 - `list_projects`: list workspace projects, optionally filtered by name, with cursor pagination
 - `list_integrations`: list workspace integrations, optionally filtered by name or type
+- `get_integration`: inspect integration details and cached table structure
 - `list_integration_project_usages`: list projects connected to an integration
 - `list_integration_notebook_usages`: list notebooks containing SQL blocks that use an integration
 - `list_integration_block_usages`: list SQL blocks that use an integration
@@ -70,7 +71,10 @@ The hosted Deepnote MCP server currently exposes these tools:
 - `create_project`: create a new project, optionally inside a folder
 - `create_notebook`: create an empty notebook inside a project
 - `create_block`: create a new block in a notebook
+- `update_block`: update an existing block's content or SQL integration
+- `reorder_notebook_blocks`: move existing blocks within a notebook
 - `create_run`: start a full notebook run, optionally with input values
+- `list_notebook_runs`: list recent and historical notebook runs
 - `get_run`: inspect run status, errors, completion time, and snapshot content when available
 - `list_docs`: list Deepnote docs sections and article slugs
 - `get_doc`: fetch a Deepnote documentation article by slug
@@ -250,9 +254,13 @@ codex plugin marketplace upgrade deepnote
 - `Inspect this Deepnote notebook and summarize its inputs.`
 - `Create a Deepnote project named Revenue Analysis.`
 - `Create a notebook in this Deepnote project and add starter markdown and code blocks.`
+- `Update this Deepnote notebook block with the revised SQL.`
 - `Add a SQL block to this notebook using my Snowflake integration.`
+- `Move these Deepnote notebook blocks to the top of the notebook.`
+- `Show me the recent runs for this Deepnote notebook.`
 - `Run this Deepnote notebook with customer_name set to Acme.`
 - `List Deepnote integrations matching Snowflake.`
+- `Show cached tables for my Snowflake integration.`
 - `Show me where this Deepnote integration is used.`
 - `Look up the Deepnote docs for scheduled notebooks.`
 
