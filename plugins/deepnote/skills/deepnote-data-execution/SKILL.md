@@ -54,9 +54,11 @@ If the current MCP tool schema does not expose `snapshotDelivery`, use the field
 
 When snapshot content, snapshot download URLs, or errors include sensitive, proprietary, personal, or production-like data, minimize exposure in the response. Summarize the result, shape, quality issues, aggregates, or failure mode instead of dumping raw records, presigned URLs, or long logs.
 
-## Environment Changes
+## Configuration Changes
 
-The hosted Deepnote MCP server currently does not expose environment mutation tools. Do not claim to change package versions, environment images, hardware, integrations, credentials, secrets, scheduled runs, or shared app settings through MCP.
+The hosted Deepnote MCP server can create, inspect, attach, and detach integrations, and it can enable or disable static-site sharing and viewer API access. It cannot upload the website files behind a static site, and it cannot change schedules, permissions, environments, hardware, credentials, or secrets.
+
+So do not claim to change package versions, environment images, hardware, credentials, secrets, scheduled runs, or permissions through MCP. Equally, do not tell a user that integration or static-site sharing changes are impossible through MCP; check the tools the connected server advertises in the current session, and use them if they are exposed.
 
 ## Reporting Results
 

@@ -137,7 +137,8 @@ Use `deepnote-notebook-editing` when creating projects, notebooks, or blocks. In
 - Treat project, notebook, and block creation as persistent write actions. Resolve targets carefully and report created IDs.
 - Run input overrides apply to one run only. Do not claim they changed notebook defaults.
 - If a tool returns `isError`, surface the user-facing error message concisely. For `create_run` failures such as workspace or parallel run limits, only call `get_run` if the `create_run` response includes a valid run ID; otherwise do not poll `get_run`.
-- The hosted MCP toolset can create projects, notebooks, and blocks. Do not claim to change integrations, permissions, schedules, publishing, environments, or other resource settings unless such tools are exposed in the current session.
+- The hosted MCP toolset can create projects, notebooks, and blocks. It can also create, inspect, attach, and detach integrations, and enable or disable static-site sharing and viewer API access. It cannot upload the underlying website files, and it cannot change schedules, permissions, environments, hardware, credentials, or secrets.
+- The tool list in this skill is a documented subset, not a complete inventory. Before telling a user that a Deepnote action is impossible, check the tools the connected server actually advertises in the current session, and do not claim to have used a tool that is not exposed there.
 
 ## Response Style
 

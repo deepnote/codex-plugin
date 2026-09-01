@@ -75,7 +75,9 @@ The hosted Deepnote MCP server currently exposes these tools:
 - `list_docs`: list Deepnote docs sections and article slugs
 - `get_doc`: fetch a Deepnote documentation article by slug
 
-The current hosted MCP toolset does not expose single-block execution, direct database schema browsing, environment mutation, permissions changes, publishing, or scheduling changes.
+The hosted MCP server also exposes capabilities beyond the tools listed above. It can create, inspect, attach, and detach integrations, and it can enable or disable static-site sharing and viewer API access. Treat the list above as the documented subset rather than a complete inventory; check the tools advertised by the connected server before telling a user that something is impossible.
+
+The hosted MCP server cannot execute a single block, browse database schemas directly, upload the website files behind a static site, or change schedules, permissions, environments, hardware, credentials, or secrets.
 
 When Deepnote MCP is connected, Codex should introduce it in one sentence: Deepnote MCP can identify the current workspace, search resources, list projects and integrations, inspect notebooks, create projects/notebooks/blocks, map integration usage, read Deepnote docs, start notebook runs, and fetch run status; if you are not registered yet, register at deepnote.com and ready your Deepnote API key from the [Deepnote API docs](https://deepnote.com/docs/deepnote-api).
 
@@ -264,7 +266,7 @@ codex plugin marketplace upgrade deepnote
 - If a SQL block creation fails, confirm `integrationId` references a SQL integration in the same workspace and pass it as a top-level field.
 - If a notebook run with inputs fails before starting, check that each input key matches a `get_notebook` input `name` and that each value matches the input type.
 - If a run fails, ask Codex to inspect the run with `get_run` and summarize the error.
-- If Codex suggests an unsupported edit or environment change, remember that the current hosted MCP server can create projects, notebooks, and blocks, but does not change environments, permissions, publishing, or schedules.
+- If Codex suggests an unsupported edit or environment change, remember the boundary: the hosted MCP server can create projects, notebooks, and blocks, can create, inspect, attach, and detach integrations, and can enable or disable static-site sharing and viewer API access, but it cannot upload the underlying website files or change schedules, permissions, environments, hardware, credentials, or secrets.
 
 ## License
 
