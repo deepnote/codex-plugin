@@ -2,6 +2,12 @@ name: Deepnote MCP drift
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: "0 9 * * *"
+
+permissions:
+  contents: read
+  issues: write
 
 jobs:
   drift:
@@ -13,6 +19,38 @@ jobs:
           persist-credentials: false
 
       - name: Check Deepnote MCP drift
+        id: drift
         env:
           DEEPNOTE_TOKEN: ${{ secrets.DEEPNOTE_TOKEN }}
         run: scripts/detect-deepnote-mcp-drift.sh
+
+      - name: Create or update GitHub issue
+        if: failure() && steps.drift.outputs.has_missing == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_MARKER: "[mcp-drift]"
+          ISSUE_TITLE: "[mcp-drift]: Add missing Deepnote MCP tools descriptions"
+          MISSING_TOOLS: ${{ steps.drift.outputs.missing }}
+        run: |
+          body_file="$(mktemp)"
+          {
+            echo "The Deepnote MCP server advertises tools that are not documented in \`plugins/deepnote\`."
+            echo
+            echo "## Missing tools"
+            echo
+            while IFS= read -r tool; do
+              [ -n "${tool}" ] && echo "- \`${tool}\`"
+            done <<< "${MISSING_TOOLS}"
+          } > "${body_file}"
+
+          issue_number="$(
+            gh issue list --state all --limit 100 --json number,title \
+              --jq '.[] | select(.title | contains(env.ISSUE_MARKER)) | .number' \
+            | head -n 1
+          )"
+
+          if [ -n "${issue_number}" ]; then
+            gh issue edit "${issue_number}" --title "${ISSUE_TITLE}" --body-file "${body_file}"
+          else
+            gh issue create --title "${ISSUE_TITLE}" --body-file "${body_file}"
+          fi
