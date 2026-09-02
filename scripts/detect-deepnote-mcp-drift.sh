@@ -19,7 +19,7 @@ tools=$(
 missing=()
 while IFS= read -r tool; do
   [ -z "${tool}" ] && continue
-  if grep -RqlF "\`${tool}\`" plugins/deepnote; then
+  if grep -RqlF --include='SKILL.md' "\`${tool}\`" plugins/deepnote/skills; then
     echo "ok  ${tool}"
   else
     echo "MISSING  ${tool}"
