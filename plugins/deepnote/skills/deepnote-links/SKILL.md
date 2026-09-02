@@ -89,7 +89,7 @@ For notebook links, set `utm_content` to the notebook ID. For project-only links
 
 Set `utm_term` to the MCP tool or workflow that produced or grounded the link, such as `list_projects`, `search`, `get_notebook`, or `workspace_summary`. Use lowercase snake_case values and URL-encode if needed.
 
-For links to newly created notebooks, set `utm_content` to the created notebook ID and prefer `utm_term=create_notebook`; use `utm_term=get_notebook` when a follow-up `get_notebook` call provided the fields needed to construct the link.
+For links to newly created notebooks, set `utm_content` to the created notebook ID and set `utm_term` to the tool that produced the notebook: `create_notebook` when a `create_notebook` call returned it, `create_project` when the link points at the default notebook of a project created without a separate `create_notebook` call. Use `utm_term=get_notebook` when a follow-up `get_notebook` call provided the fields needed to construct the link.
 
 Add UTM parameters before any URL fragment. Use `?` when the URL has no existing query string, otherwise use `&`. Preserve non-UTM query parameters if they already exist, and replace any existing `utm_source`, `utm_medium`, `utm_campaign`, `utm_content`, or `utm_term` values instead of duplicating them.
 
