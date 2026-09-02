@@ -1,6 +1,6 @@
 {
   "name": "deepnote",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Search Deepnote workspaces, inspect notebooks, generate links, map integrations, read docs, and run notebooks from Codex.",
   "author": {
     "name": "Deepnote",
@@ -22,9 +22,9 @@
   "interface": {
     "displayName": "Deepnote",
     "shortDescription": "Work with Deepnote workspaces, projects, notebooks, and docs from Codex.",
-    "longDescription": "Adds Deepnote skills and hosted MCP configuration for Codex. Use it to identify the current workspace, search resources, list paginated projects and integrations, construct workspace-aware project and notebook links, map integration usage, inspect notebook structure and inputs, read Deepnote docs, start notebook runs with optional input values, and summarize run status and outputs.",
+    "longDescription": "Adds Deepnote skills and hosted MCP configuration for Codex. Use it to identify the current workspace, search resources, list paginated projects and integrations, inspect cached integration structure, construct workspace-aware project and notebook links, inspect and edit notebook structure, read Deepnote docs, start notebook runs with optional input values, and summarize run history, status, and outputs.",
     "developerName": "Deepnote",
-    "category": "Productivity",
+    "category": "Data & Analytics",
     "capabilities": [
       "Interactive",
       "Read",

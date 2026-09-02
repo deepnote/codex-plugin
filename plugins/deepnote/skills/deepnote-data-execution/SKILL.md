@@ -1,6 +1,6 @@
 ---
 name: deepnote-data-execution
-description: Use when running Deepnote notebooks, inspecting notebook inputs, reviewing integration references, or interpreting run status and snapshot outputs through the Deepnote MCP server.
+description: Use when running Deepnote notebooks, inspecting notebook inputs, reviewing integration references and cached table structure, listing run history, or interpreting run status and snapshot outputs through the Deepnote MCP server.
 ---
 
 # Deepnote Data And Execution
@@ -11,17 +11,19 @@ Use the Deepnote MCP server for the execution and context it currently exposes:
 
 - `get_notebook` for notebook blocks, input variables, last-run metadata, and integration references visible in blocks.
 - `list_integrations` for workspace integration names and types.
+- `get_integration` for integration details and cached table structure, optionally filtered by `databaseName`, `schemaName`, or exact `tableName`.
 - `list_integration_project_usages`, `list_integration_notebook_usages`, and `list_integration_block_usages` for direct integration usage mapping.
 - `create_run` to start full-notebook execution, optionally with input values.
+- `list_notebook_runs` for historical notebook runs, newest first, with `pageSize` and `pageToken` pagination.
 - `get_run` for run status, errors, completion time, and run snapshots. When `snapshotDelivery` is omitted, it returns a short-lived `snapshotDownloadUrl` when a snapshot is available; this is equivalent to `snapshotDelivery: "downloadUrl"`. Request `snapshotDelivery: "inline"` only when you need `snapshotContent` in the tool response.
 - `get_me` for the authenticated workspace, API key type, and caller access level when execution permissions or workspace identity matter.
 
-Do not claim direct access to database schemas, table previews, file metadata, query previews, or environment configuration unless a current MCP tool explicitly exposes that data.
+Use `get_integration` for cached table and column structure when the user asks about integration schemas, tables, columns, or whether a table exists. Do not claim live database introspection, table previews, query previews, file metadata, or environment configuration unless a current MCP tool explicitly exposes that data.
 
 ## Execution Workflow
 
 1. Read the notebook context first with `get_notebook`.
-2. Identify whether the user needs a fresh run or whether existing run metadata is enough.
+2. Identify whether the user needs a fresh run, a specific run status, or notebook run history.
 3. If the notebook has inputs and the user supplied values, map values to the exact input `name` fields returned by `get_notebook`.
 4. Check whether execution may mutate data, call external services, trigger schedules, or consume significant compute.
 5. Use `create_run` only for full-notebook execution by `notebookId`; the hosted MCP server does not currently expose single-block execution.
@@ -29,6 +31,22 @@ Do not claim direct access to database schemas, table previews, file metadata, q
 7. Use `get_run` to inspect status, errors, completion time, and snapshot availability before reporting results. For routine status checks, omit `snapshotDelivery` so the default download URL delivery is used; request `snapshotDelivery: "inline"` when you need to inspect notebook outputs, snapshot errors, or result details.
 
 Before starting a run, inspect the notebook for cells that print environment variables, secrets, credentials, or entire configuration objects. If found, warn the user and get explicit confirmation before running. Also warn before running notebooks that start servers, send bulk requests, call external services, or mutate data.
+
+## Run History
+
+Use `list_notebook_runs` when the user asks about recent runs, failed runs, run history, or anything older than the latest run metadata returned by `get_notebook`. The tool returns runs newest first with `runId`, `notebookId`, `status`, `createdAt`, `completedAt`, and `pagination`.
+
+For short history requests, call `list_notebook_runs` with the default `pageSize` of 20. For broader audits, use `pageSize: 100` and follow `pagination.nextPageToken` while `pagination.hasMore` is true, stopping once you have enough evidence for the user's question.
+
+Use `get_run` only after selecting a specific run that needs detail, snapshot availability, output inspection, or failure debugging. If the user asks "why did the last run fail?" and no run ID is provided, list recent runs first, pick the newest failed run, then call `get_run` for that run.
+
+## Cached Integration Structure
+
+Use `list_integrations` to resolve an integration name or type to an ID, then call `get_integration` for cached table structure. The response includes integration details plus `tables`, where each table has `name`, `schema`, optional `database`, and cached `columns` with names and database-native types.
+
+Use `databaseName`, `schemaName`, and `tableName` filters when the user asks about a specific database, schema, or exact table. These filters apply to cached structure rows; an empty table list means no matching cached structure is visible through MCP, not proof that the live database has no such table.
+
+When reporting cached structure, say it is cached. Do not present it as a fresh live database scan, and do not claim access to row previews or query results unless you obtained them from a notebook run snapshot or another exposed MCP tool.
 
 ## Notebook Run Inputs
 
@@ -54,9 +72,11 @@ If the current MCP tool schema does not expose `snapshotDelivery`, use the field
 
 When snapshot content, snapshot download URLs, or errors include sensitive, proprietary, personal, or production-like data, minimize exposure in the response. Summarize the result, shape, quality issues, aggregates, or failure mode instead of dumping raw records, presigned URLs, or long logs.
 
-## Environment Changes
+## Configuration Changes
 
-The hosted Deepnote MCP server currently does not expose environment mutation tools. Do not claim to change package versions, environment images, hardware, integrations, credentials, secrets, scheduled runs, or shared app settings through MCP.
+The hosted Deepnote MCP server can create, inspect, attach, and detach integrations, and it can enable or disable static-site sharing and viewer API access. It cannot upload the website files behind a static site, and it cannot change schedules, permissions, environments, hardware, credentials, or secrets.
+
+So do not claim to change package versions, environment images, hardware, credentials, secrets, scheduled runs, or permissions through MCP. Equally, do not tell a user that integration or static-site sharing changes are impossible through MCP; check the tools the connected server advertises in the current session, and use them if they are exposed.
 
 ## Reporting Results
 
