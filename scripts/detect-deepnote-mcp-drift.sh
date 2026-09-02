@@ -1,13 +1,13 @@
 #!/bin/bash
 set -euo pipefail
 
-if [ -z "${DEEPNOTE_TOKEN}" ]; then
+if [ -z "${DEEPNOTE_TOKEN:-}" ]; then
   echo "DEEPNOTE_TOKEN is not set"
   exit 1
 fi
 
 tools=$(
-  curl -sS https://deepnote.com/mcp \
+  curl -sS --fail-with-body --connect-timeout 10 --max-time 60 https://deepnote.com/mcp \
     -X POST \
     -H "Authorization: Bearer ${DEEPNOTE_TOKEN}" \
     -H "Content-Type: application/json" \
