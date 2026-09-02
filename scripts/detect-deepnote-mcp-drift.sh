@@ -39,6 +39,7 @@ if [ -n "${GITHUB_OUTPUT:-}" ]; then
     echo "EOF"
   } >> "${GITHUB_OUTPUT}"
 else
+  echo "-----"
   jq -n --args '{has_missing: true, missing: $ARGS.positional}' -- "${missing[@]}"
 fi
 
